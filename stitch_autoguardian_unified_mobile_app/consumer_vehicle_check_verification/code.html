@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AutoGuardian DRC - Vérification Véhicule</title>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Public Sans Font -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "on-surface": "#121b2e",
+            "on-primary": "#ffffff",
+            "tertiary-fixed": "#d5e4fa",
+            "on-error": "#ffffff",
+            "error": "#ba1a1a",
+            "surface-container-highest": "#d9e2fc",
+            "secondary-fixed-dim": "#efc13e",
+            "on-tertiary-fixed": "#0e1c2d",
+            "status-warning": "#7A4C00",
+            "outline-variant": "#c4c6ce",
+            "tertiary-container": "#1e2c3d",
+            "on-surface-variant": "#44474e",
+            "primary": "#001632",
+            "surface-container-high": "#e1e8ff",
+            "surface-variant": "#d9e2fc",
+            "on-primary-container": "#7d93b7",
+            "tertiary-fixed-dim": "#b9c8de",
+            "on-tertiary-container": "#8593a8",
+            "surface": "#f9f9ff",
+            "on-tertiary": "#ffffff",
+            "on-error-container": "#93000a",
+            "secondary": "#765b00",
+            "surface-neutral": "#F5F7FA",
+            "outline": "#74777e",
+            "status-success": "#166534",
+            "status-danger": "#B42318",
+            "tertiary": "#081727",
+            "surface-container-low": "#f1f3ff",
+            "surface-tint": "#4a5f81",
+            "error-container": "#ffdad6",
+            "primary-fixed-dim": "#b2c7ee",
+            "background": "#f9f9ff",
+            "surface-container-lowest": "#ffffff",
+            "inverse-primary": "#b2c7ee",
+            "on-secondary": "#ffffff",
+            "primary-container": "#142b4a",
+            "on-primary-fixed-variant": "#324768",
+            "surface-dim": "#d1daf4",
+            "on-primary-fixed": "#021c3a",
+            "secondary-fixed": "#ffdf94",
+            "inverse-surface": "#273044",
+            "secondary-container": "#fece4b",
+            "on-secondary-fixed-variant": "#594400",
+            "on-tertiary-fixed-variant": "#3a485a",
+            "surface-container": "#e9edff",
+            "on-background": "#121b2e",
+            "surface-bright": "#f9f9ff",
+            "on-secondary-container": "#725800",
+            "primary-fixed": "#d5e3ff",
+            "on-secondary-fixed": "#241a00",
+            "border-subtle": "#D6DCE5",
+            "inverse-on-surface": "#edf0ff",
+            "surface-canvas": "#FFFFFF"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          "spacing": {
+            "space-md": "1rem",
+            "space-lg": "1.5rem",
+            "margin": "1rem",
+            "space-xl": "2rem",
+            "space-xs": "0.25rem",
+            "gutter": "1rem",
+            "space-sm": "0.5rem"
+          },
+          "fontFamily": {
+            "body-md": ["Public Sans"],
+            "label-md": ["Public Sans"],
+            "headline-sm": ["Public Sans"],
+            "data-mono": ["Public Sans"],
+            "headline-md": ["Public Sans"],
+            "headline-lg": ["Public Sans"],
+            "label-lg": ["Public Sans"],
+            "body-sm": ["Public Sans"],
+            "headline-xl": ["Public Sans"],
+            "body-lg": ["Public Sans"],
+            "label-sm": ["Public Sans"]
+          },
+          "fontSize": {
+            "body-md": ["15px", {"lineHeight": "22px", "fontWeight": "400"}],
+            "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600"}],
+            "headline-sm": ["16px", {"lineHeight": "22px", "fontWeight": "600"}],
+            "data-mono": ["15px", {"lineHeight": "20px", "letterSpacing": "0.08em", "fontWeight": "600"}],
+            "headline-md": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+            "headline-lg": ["22px", {"lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+            "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+            "body-sm": ["13px", {"lineHeight": "18px", "fontWeight": "400"}],
+            "headline-xl": ["28px", {"lineHeight": "34px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+            "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+            "label-sm": ["11px", {"lineHeight": "14px", "letterSpacing": "0.04em", "fontWeight": "700"}]
+          }
+        },
+      },
+    }
+  </script>
+</head>
+<body class="bg-surface-neutral text-on-surface font-body-md antialiased min-h-screen flex justify-center selection:bg-secondary-container selection:text-primary">
+<!-- Mobile Viewport Container (Master 390px baseline) -->
+<div class="w-full max-w-[390px] bg-surface-canvas min-h-screen flex flex-col relative shadow-sm border-x border-border-subtle pb-20">
+<!-- Top Navigation Anchor (Shared Component TopAppBar) -->
+<header class="flex justify-between items-center w-full px-space-md py-space-sm h-14 bg-primary text-on-primary docked full-width top border-b border-outline">
+<div class="flex items-center gap-2">
+<img alt="AutoGuardian Brand Logo" class="w-8 h-8 rounded-lg object-contain bg-surface-canvas p-0.5" src="https://lh3.googleusercontent.com/aida/AEtjO1WLk-GCmLkXUdedzYBT0htm0nkKbfqsTb2Iuugw4kRV5YrkfGr6wz9Qt7QYHZg0GoiowkMCID3BMXdGquGnHAmi8Qbx5IS2X0c3abYZU_7nnwOrZWslPX7jU0fC7-Uj9dflpdMRGwpTocJpGwm9U4rCS6EIs3SaQW8XrQnWrZScUVo05lZm6dnOiO37r6g1-4Bll3SGvqQY6ZXANRhAnv9eTl_VYc1ojQZuHrqLpzN7WodExPEFaqswQaU"/>
+<span class="text-headline-sm font-headline-sm text-on-primary font-bold tracking-tight">AutoGuardian DRC</span>
+</div>
+<div class="flex items-center gap-2">
+<button class="text-label-md font-label-md bg-primary-container text-on-primary border border-outline-variant px-2 py-1 rounded hover:bg-opacity-80 transition-opacity" type="button">
+          FR | EN
+        </button>
+</div>
+</header>
+<!-- Role Indicator & Section Mode Switcher -->
+<div class="bg-surface-neutral px-space-md py-space-sm border-b border-border-subtle flex items-center justify-between">
+<div class="flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-secondary-container"></span>
+<span class="text-label-sm font-label-sm text-on-surface tracking-wider uppercase">PORTAIL CITOYEN</span>
+</div>
+<!-- Role Badge & Selector -->
+<div class="inline-flex items-center gap-1.5 bg-surface-canvas border border-border-subtle rounded px-2 py-1 cursor-pointer">
+<span class="material-symbols-outlined text-sm text-status-warning" style="font-variation-settings: 'FILL' 1;">verified</span>
+<span class="text-label-sm font-label-sm text-on-surface font-bold">CONSUMER MODE</span>
+<span class="material-symbols-outlined text-xs text-on-surface-variant">arrow_drop_down</span>
+</div>
+</div>
+<!-- Main Content Canvas -->
+<main class="flex-1 px-space-md py-space-md flex flex-col gap-5">
+<!-- Official DRC Legal Rule / Safety Banner -->
+<div class="relative bg-surface-neutral border-l-4 border-status-danger border-y border-r border-border-subtle p-3 rounded-r">
+<div class="flex items-start gap-2.5">
+<span class="material-symbols-outlined text-status-danger text-lg shrink-0 mt-0.5" style="font-variation-settings: 'FILL' 1;">gavel</span>
+<div>
+<div class="flex items-center gap-1">
+<span class="text-label-sm font-label-sm text-status-danger font-bold uppercase tracking-wider">RÈGLE LÉGALE D'ACQUISITION DRC</span>
+</div>
+<p class="text-body-sm font-body-sm text-on-surface font-medium mt-1 leading-snug">
+<strong class="text-status-danger">Le silence ne vaut PAS approbation.</strong> Si la transaction n'est pas expressément autorisée sur l'application par le titulaire de la carte rose, n'effectuez aucun paiement.
+            </p>
+</div>
+</div>
+</div>
+<!-- Vehicle Search & Verification Form -->
+<section class="bg-surface-canvas border border-border-subtle rounded-lg p-3.5 shadow-sm">
+<div class="flex items-center justify-between mb-3">
+<h2 class="text-headline-sm font-headline-sm text-primary flex items-center gap-1.5">
+<span class="material-symbols-outlined text-primary text-base">directions_car</span>
+            Identification Véhicule
+          </h2>
+<!-- Monthly Quota Pill -->
+<div class="inline-flex items-center gap-1 bg-surface-container-high px-2 py-0.5 rounded text-label-sm font-label-sm text-primary">
+<span class="material-symbols-outlined text-xs text-status-success" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span>1 Check Gratuit Restant</span>
+</div>
+</div>
+<!-- Search Mode Segmented Tabs -->
+<div class="grid grid-cols-3 gap-1 bg-surface-neutral p-1 rounded border border-border-subtle mb-3">
+<button class="py-1.5 text-center text-label-sm font-label-sm bg-primary text-on-primary rounded font-bold shadow-xs" type="button">
+            Plaque Immat.
+          </button>
+<button class="py-1.5 text-center text-label-sm font-label-sm text-on-surface-variant hover:text-on-surface transition-colors" type="button">
+            N° Châssis / VIN
+          </button>
+<button class="py-1.5 text-center text-label-sm font-label-sm text-on-surface-variant flex items-center justify-center gap-1" type="button">
+<span class="material-symbols-outlined text-xs">qr_code_scanner</span>
+            Sceller QR
+          </button>
+</div>
+<!-- Plate Input Group (Kinshasa Format) -->
+<div>
+<label class="block text-label-md font-label-md text-on-surface-variant mb-1.5">
+            Numéro d'immatriculation officiel (Kinshasa)
+          </label>
+<div class="relative flex items-center">
+<!-- DRC Flag Badge Inset -->
+<div class="absolute left-2.5 flex items-center gap-1 px-1.5 py-0.5 bg-surface-neutral border border-border-subtle rounded text-label-sm font-label-sm font-bold text-primary select-none">
+<span class="text-xs">🇨🇩</span>
+<span>CGO</span>
+</div>
+<input class="w-full pl-20 pr-10 py-3 bg-surface-neutral border border-border-subtle text-primary font-data-mono text-data-mono font-bold tracking-widest rounded focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary text-center" readonly="" type="text" value="0123AB01"/>
+<span class="material-symbols-outlined absolute right-3 text-status-success text-xl" style="font-variation-settings: 'FILL' 1;">
+              check_circle
+            </span>
+</div>
+<div class="flex justify-between items-center mt-1.5 px-0.5">
+<span class="text-label-sm font-label-sm text-on-surface-variant">Format standard: 0000AA00</span>
+<span class="text-label-sm font-label-sm text-secondary font-bold">Standard 2$ après quota</span>
+</div>
+</div>
+</section>
+<!-- Verification Status Card -->
+<section class="bg-surface-canvas border border-border-subtle rounded-lg overflow-hidden shadow-sm">
+<!-- Status State Header: Green Left Indicator Bar -->
+<div class="border-l-4 border-status-success bg-surface-neutral px-3.5 py-2.5 border-b border-border-subtle flex items-center justify-between">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-status-success text-base" style="font-variation-settings: 'FILL' 1;">shield</span>
+<span class="text-label-md font-label-md text-primary uppercase font-bold tracking-wide">STATUT OFFICIEL DU TITRE</span>
+</div>
+<span class="bg-status-success text-on-primary text-label-sm font-label-sm px-2 py-0.5 rounded font-bold uppercase tracking-wider">
+            ENROLLED &amp; PROTECTED
+          </span>
+</div>
+<div class="p-3.5 space-y-4">
+<!-- Vehicle Primary Details Block -->
+<div class="flex items-start justify-between border-b border-border-subtle pb-3">
+<div>
+<span class="text-label-sm font-label-sm text-on-surface-variant uppercase tracking-wider">VÉHICULE CERTIFIÉ</span>
+<h3 class="text-headline-md font-headline-md text-primary font-bold">Toyota RAV4 2018</h3>
+<p class="text-body-sm font-body-sm text-on-surface-variant">Couleur: Gris Métallisé (Silver)</p>
+</div>
+<div class="text-right">
+<span class="text-label-sm font-label-sm text-on-surface-variant uppercase tracking-wider">IMMATRICULATION</span>
+<div class="font-data-mono text-headline-sm text-primary font-bold">0123AB01</div>
+<span class="text-label-sm font-label-sm text-status-success font-medium">Kinshasa Central</span>
+</div>
+</div>
+<!-- Technical Attributes Grid (Mono Rows) -->
+<div class="bg-surface-neutral rounded border border-border-subtle p-2.5 space-y-2">
+<div class="flex justify-between items-center text-body-sm">
+<span class="text-on-surface-variant text-label-md font-label-md">Numéro de Châssis (VIN)</span>
+<span class="font-data-mono text-on-surface font-semibold">JT3HP10V6K••••••</span>
+</div>
+<div class="h-px bg-border-subtle"></div>
+<div class="flex justify-between items-center text-body-sm">
+<span class="text-on-surface-variant text-label-md font-label-md">Bloc Moteur Scellé</span>
+<span class="font-data-mono text-on-surface font-semibold">2AR-FE-88421</span>
+</div>
+<div class="h-px bg-border-subtle"></div>
+<div class="flex justify-between items-center text-body-sm">
+<span class="text-on-surface-variant text-label-md font-label-md">Sceau Physique Direction</span>
+<div class="inline-flex items-center gap-1 text-status-success font-bold text-label-md font-label-md">
+<span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">lock</span>
+<span>4/4 Actifs &amp; Intacts</span>
+</div>
+</div>
+</div>
+<!-- Real-Time Owner Authorization Countdown Card -->
+<div class="bg-surface-canvas border-2 border-secondary-container rounded p-3 text-center relative">
+<div class="flex items-center justify-center gap-1.5 mb-2">
+<span class="material-symbols-outlined text-status-warning text-base animate-pulse">radio_button_checked</span>
+<span class="text-label-sm font-label-sm text-status-warning font-bold uppercase tracking-wider">PROTOCOLE DE CONFIRMATION EN DIRECT</span>
+</div>
+<!-- Circular Progress Representation -->
+<div class="flex flex-col items-center justify-center my-2">
+<div class="relative w-24 h-24 flex items-center justify-center">
+<svg class="w-full h-full transform -rotate-90" viewbox="0 0 36 36">
+<!-- Background Circle -->
+<path class="text-surface-container" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-width="3.5"></path>
+<!-- Progress Dash -->
+<path class="text-secondary-container" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-dasharray="72, 100" stroke-linecap="round" stroke-width="3.5"></path>
+</svg>
+<div class="absolute flex flex-col items-center justify-center text-center">
+<span class="font-data-mono text-headline-md font-headline-md text-primary font-bold">08:42</span>
+<span class="text-label-sm font-label-sm text-on-surface-variant -mt-1">restant</span>
+</div>
+</div>
+</div>
+<p class="text-label-md font-label-md text-primary font-bold mt-1">
+              EN ATTENTE D'AUTORISATION DU PROPRIÉTAIRE
+            </p>
+<p class="text-body-sm font-body-sm text-on-surface-variant mt-0.5">
+              Alerte chiffrée envoyée par SMS et In-App au numéro officiel lié au certificat d'enregistrement.
+            </p>
+<div class="mt-2.5 inline-flex items-center gap-1.5 px-2.5 py-1 bg-surface-neutral border border-border-subtle rounded text-label-sm font-label-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-sm text-primary">schedule_send</span>
+<span>Délivré il y a 1 min 18s</span>
+</div>
+</div>
+<!-- Police / Safety Warning Instruction -->
+<div class="bg-error-container/40 border border-status-danger/30 rounded p-2.5 flex items-start gap-2">
+<span class="material-symbols-outlined text-status-danger text-base shrink-0 mt-0.5">emergency</span>
+<p class="text-body-sm font-body-sm text-on-surface leading-tight">
+<strong>Ne confrontez jamais le vendeur.</strong> En cas d'alerte véhicule volé ou de non-concordance de châssis, quittez les lieux calmement et signalez à la <strong>Police Nationale: 112</strong>.
+            </p>
+</div>
+<!-- Primary & Secondary Workflow Actions -->
+<div class="space-y-2 pt-1">
+<!-- Primary Action Button: Refresh Status (Navy with Gold Accent) -->
+<button class="w-full min-h-[48px] bg-primary text-on-primary font-label-lg font-label-lg rounded px-4 py-3 flex items-center justify-center gap-2 relative overflow-hidden active:opacity-90 transition-opacity border-b-2 border-secondary-container" type="button">
+<span class="material-symbols-outlined text-secondary-container text-lg">sync</span>
+<span>Actualiser le Statut en Direct</span>
+</button>
+<!-- Secondary Action Button -->
+<button class="w-full min-h-[48px] bg-surface-canvas border-2 border-primary text-primary font-label-lg font-label-lg rounded px-4 py-3 flex items-center justify-center gap-2 hover:bg-surface-neutral active:scale-95 transition-all" type="button">
+<span class="material-symbols-outlined text-base">receipt_long</span>
+<span>Annuler / Reçu de Vérification</span>
+</button>
+</div>
+</div>
+</section>
+<!-- Audit Transparency Log Note -->
+<div class="text-center px-4 py-2">
+<p class="text-label-sm font-label-sm text-on-surface-variant">
+          Horodatage certifié par le nœud administratif Kinshasa-Gombe • SHA-256 Validé
+        </p>
+</div>
+</main>
+<!-- Bottom Navigation Bar (Shared Component BottomNavBar) -->
+<!-- The user is in the verification/check flow, so "Recherche" (the primary checking tab) is active -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-space-xs py-space-xs h-16 bg-surface border-t border-border-subtle max-w-[390px] mx-auto right-0">
+<!-- Tab 1: Recherche (Check - ACTIVE) -->
+<button class="flex flex-col items-center justify-center min-w-[64px] min-h-[48px] bg-secondary-container text-on-secondary-container rounded-lg px-space-sm py-space-xs font-label-sm text-label-sm" type="button">
+<span class="material-symbols-outlined text-xl" style="font-variation-settings: 'FILL' 1;">search</span>
+<span class="mt-0.5">Recherche</span>
+</button>
+<!-- Tab 2: Sceller (Seal QR) -->
+<button class="flex flex-col items-center justify-center min-w-[64px] min-h-[48px] text-on-surface-variant px-space-sm py-space-xs font-label-sm text-label-sm hover:bg-surface-container active:scale-95 transition-transform duration-100" type="button">
+<span class="material-symbols-outlined text-xl">qr_code_scanner</span>
+<span class="mt-0.5">Sceller</span>
+</button>
+<!-- Tab 3: Registres (My Vehicles / History with Badge) -->
+<button class="flex flex-col items-center justify-center min-w-[64px] min-h-[48px] text-on-surface-variant px-space-sm py-space-xs font-label-sm text-label-sm relative hover:bg-surface-container active:scale-95 transition-transform duration-100" type="button">
+<div class="relative">
+<span class="material-symbols-outlined text-xl">assignment</span>
+<span class="absolute -top-1 -right-2 bg-status-danger text-on-primary text-[9px] font-bold px-1 rounded-full">1</span>
+</div>
+<span class="mt-0.5">Registres</span>
+</button>
+<!-- Tab 4: Profil (Account) -->
+<button class="flex flex-col items-center justify-center min-w-[64px] min-h-[48px] text-on-surface-variant px-space-sm py-space-xs font-label-sm text-label-sm hover:bg-surface-container active:scale-95 transition-transform duration-100" type="button">
+<span class="material-symbols-outlined text-xl">shield_person</span>
+<span class="mt-0.5">Profil</span>
+</button>
+</nav>
+</div>
+<script>
+    // Lightweight interaction for status refresh button microfeedback
+    document.addEventListener('DOMContentLoaded', () => {
+      const refreshBtn = document.querySelector('button:has(.material-symbols-outlined:contains("sync")), button[class*="border-secondary-container"]');
+      if (refreshBtn) {
+        refreshBtn.addEventListener('click', () => {
+          const syncIcon = refreshBtn.querySelector('.material-symbols-outlined');
+          if (syncIcon) {
+            syncIcon.classList.add('animate-spin');
+            setTimeout(() => {
+              syncIcon.classList.remove('animate-spin');
+            }, 1200);
+          }
+        });
+      }
+    });
+  </script>
+</body></html>
