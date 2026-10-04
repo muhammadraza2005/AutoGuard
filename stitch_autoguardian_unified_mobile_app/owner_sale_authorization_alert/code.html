@@ -1,16 +1,14 @@
-<!DOCTYPE html>
-
-<html class="light" lang="fr"><head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>AutoGuardian DRC - Live Sale Authorization</title>
+<!DOCTYPE html><html class="light" lang="en" data-stitch-anim-opacity="true" style="opacity: 0;"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>AutoGuardian - Sale Authorization Request</title>
 <!-- Material Symbols Outlined -->
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
 <!-- Public Sans Font -->
-<link href="https://fonts.googleapis.com" rel="preconnect"/>
-<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
-<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
 <!-- Tailwind CSS -->
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <script id="tailwind-config">
@@ -138,208 +136,14 @@
 <!-- Mobile Viewport Container (Portrait 390px baseline) -->
 <div class="w-full max-w-[390px] bg-surface-canvas min-h-screen flex flex-col relative pb-24 shadow-sm border-x border-border-subtle">
 <!-- TopAppBar (from Shared Components JSON: docked top, border-b, flat elevation) -->
-<header class="flex justify-between items-center w-full px-space-md py-space-sm h-14 bg-primary text-on-primary border-b border-outline shrink-0">
-<div class="flex items-center gap-2">
-<img alt="AutoGuardian Brand Logo" class="w-8 h-8 rounded-lg object-contain bg-surface-canvas p-0.5" src="https://lh3.googleusercontent.com/aida/AEtjO1WLk-GCmLkXUdedzYBT0htm0nkKbfqsTb2Iuugw4kRV5YrkfGr6wz9Qt7QYHZg0GoiowkMCID3BMXdGquGnHAmi8Qbx5IS2X0c3abYZU_7nnwOrZWslPX7jU0fC7-Uj9dflpdMRGwpTocJpGwm9U4rCS6EIs3SaQW8XrQnWrZScUVo05lZm6dnOiO37r6g1-4Bll3SGvqQY6ZXANRhAnv9eTl_VYc1ojQZuHrqLpzN7WodExPEFaqswQaU"/>
-<span class="text-headline-sm font-headline-sm text-on-primary font-bold tracking-tight">AutoGuardian DRC</span>
-</div>
-<div class="flex items-center gap-2">
-<button class="text-label-md font-label-md px-2 py-1 bg-primary-container text-on-primary rounded border border-on-primary-container hover:bg-primary-container transition-opacity active:opacity-90" type="button">
-          FR | EN
-        </button>
-</div>
-</header>
+<header class="flex justify-between items-center w-full px-space-md py-space-sm h-14 bg-primary text-on-primary border-b border-outline shrink-0"><div class="flex items-center gap-2"><span class="material-symbols-outlined text-[24px] text-on-primary">shield</span><span class="text-headline-sm font-headline-sm text-on-primary font-bold tracking-tight">AutoGuardian</span></div><span class="inline-flex items-center px-2 py-0.5 bg-primary-container border border-on-primary-container rounded text-label-sm font-label-sm text-on-primary">Owner Account</span></header>
 <!-- Sub-Header Status Ribbon: Authority Role & Security Notice -->
-<div class="w-full bg-surface-neutral px-space-md py-2 border-b border-border-subtle flex items-center justify-between">
-<div class="flex items-center gap-1.5">
-<!-- Consumer Role Badge -->
-<span class="inline-flex items-center gap-1 px-2 py-0.5 bg-surface-neutral border border-border-subtle rounded-lg text-label-sm font-label-sm text-on-surface-variant uppercase tracking-wider">
-<span class="w-1.5 h-1.5 rounded-full bg-on-surface-variant"></span>
-          CONSUMER / OWNER
-        </span>
-</div>
-<div class="flex items-center gap-1 text-status-warning text-label-sm font-label-sm">
-<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">warning</span>
-<span>PRIORITÉ SÉCURITÉ</span>
-</div>
-</div>
+
 <!-- Main Content Canvas -->
-<main class="flex-1 px-space-md py-space-md flex flex-col gap-space-lg">
-<!-- Critical Notification Card (High urgency alert banner with pulsing amber/navy accent) -->
-<section class="pulsing-alert bg-surface-canvas border-2 border-secondary-container rounded-lg p-3.5 relative overflow-hidden">
-<!-- Status indicator bar -->
-<div class="absolute top-0 left-0 bottom-0 w-1 bg-secondary-container"></div>
-<div class="pl-2">
-<!-- Card Header & Request ID -->
-<div class="flex items-start justify-between gap-2 mb-2">
-<div class="flex items-center gap-1.5 text-status-warning">
-<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">gpp_maybe</span>
-<h1 class="text-headline-sm font-headline-sm text-on-surface tracking-tight">
-                URGENT: Sale Authorization Request
-              </h1>
-</div>
-</div>
-<p class="text-body-sm font-body-sm text-on-surface-variant mb-3 leading-relaxed">
-            Someone is currently checking your vehicle for purchase at <strong class="text-on-surface font-semibold">Marché de la Liberté, Kinshasa</strong>.
-          </p>
-<!-- Expiration Timer Box -->
-<div class="bg-surface-neutral border border-border-subtle rounded-lg p-2.5 flex items-center justify-between mb-3">
-<div class="flex items-center gap-2">
-<span class="material-symbols-outlined text-secondary text-[20px]">timer</span>
-<div>
-<div class="text-label-sm font-label-sm text-on-surface-variant">TEMPS RESTANT</div>
-<div class="text-data-mono font-data-mono text-status-danger font-bold text-[14px]" id="countdownTimer">
-                  11 mins 34 secs
-                </div>
-</div>
-</div>
-<span class="text-label-sm font-label-sm text-on-surface-variant text-right max-w-[110px] leading-tight">
-              Silence will deny the sale automatically
-            </span>
-</div>
-<!-- Vehicle Snapshot Card (Level 1 Surface) -->
-<div class="bg-surface-neutral border border-border-subtle rounded-lg p-3 relative mb-3">
-<div class="flex items-center justify-between border-b border-border-subtle pb-2 mb-2">
-<div class="flex items-center gap-1.5">
-<span class="material-symbols-outlined text-primary text-[18px]">directions_car</span>
-<span class="text-label-md font-label-md text-on-surface uppercase">Véhicule Certifié DRC</span>
-</div>
-<span class="inline-flex items-center gap-1 px-1.5 py-0.5 bg-surface-canvas border border-status-success rounded text-[10px] font-bold text-status-success">
-<span class="w-1 h-1 rounded-full bg-status-success"></span>
-                GAGE VALIDÉ
-              </span>
-</div>
-<div class="space-y-1.5">
-<div class="flex justify-between items-baseline">
-<span class="text-body-sm font-body-sm text-on-surface-variant">Modèle:</span>
-<span class="text-headline-sm font-headline-sm text-on-surface">2018 Toyota RAV4 (Silver)</span>
-</div>
-<div class="flex justify-between items-baseline">
-<span class="text-body-sm font-body-sm text-on-surface-variant">Plaque DRC:</span>
-<span class="text-data-mono font-data-mono text-primary font-bold">0123AB01</span>
-</div>
-<div class="flex justify-between items-baseline">
-<span class="text-body-sm font-body-sm text-on-surface-variant">Titulaire Légal:</span>
-<span class="text-label-md font-label-md text-status-success bg-surface-canvas px-1.5 py-0.5 rounded border border-border-subtle">
-                  You (Propriétaire Titulaire)
-                </span>
-</div>
-<div class="flex justify-between items-baseline pt-1 border-t border-border-subtle">
-<span class="text-body-sm font-body-sm text-on-surface-variant">Vérification ID:</span>
-<span class="text-data-mono font-data-mono text-on-surface">#VR-2026-9841</span>
-</div>
-<div class="flex justify-between items-baseline">
-<span class="text-body-sm font-body-sm text-on-surface-variant">Contact Acheteur:</span>
-<span class="text-data-mono font-data-mono text-on-surface">+243 81 *** 4412</span>
-</div>
-</div>
-</div>
-<!-- Critical Decision Actions -->
-<div class="flex flex-col gap-2.5">
-<!-- Green prominent button: YES, AUTHORIZE SALE -->
-<button class="w-full min-h-[48px] bg-status-success hover:bg-status-success/90 active:scale-[0.99] transition-transform text-on-primary font-label-lg text-label-lg rounded flex items-center justify-center gap-2 shadow-sm font-bold" id="btnAuthorize" type="button">
-<span class="material-symbols-outlined text-[20px]">verified</span>
-              YES, AUTHORIZE SALE
-            </button>
-<!-- Red outline button: NO, DENY SALE -->
-<button class="w-full min-h-[48px] bg-surface-canvas hover:bg-error-container text-status-danger border-1.5 border-status-danger rounded font-label-lg text-label-lg flex items-center justify-center gap-2 active:scale-[0.99] transition-transform" id="btnDeny" type="button">
-<span class="material-symbols-outlined text-[20px]">block</span>
-              NO, DENY SALE
-            </button>
-<!-- Danger link: Report Vehicle Missing / Stolen -->
-<div class="text-center pt-1">
-<button class="inline-flex items-center gap-1.5 text-body-sm font-body-sm text-status-danger hover:underline py-1" type="button">
-<span class="material-symbols-outlined text-[16px]">local_police</span>
-<span>Report Vehicle Missing / Stolen (Alerte F4)</span>
-</button>
-</div>
-</div>
-</div>
-</section>
-<!-- PIN Challenge Modal / Bottom Sheet (Level 2 Interactive Module) -->
-<section class="bg-surface-canvas border-1.5 border-primary rounded-lg p-4 shadow-[0_2px_4px_rgba(20,43,74,0.08)]" id="pinSection">
-<div class="flex items-center justify-between border-b border-border-subtle pb-2 mb-3">
-<div class="flex items-center gap-2">
-<span class="material-symbols-outlined text-primary text-[20px]">lock</span>
-<h2 class="text-headline-sm font-headline-sm text-primary">Confirmation du Code PIN Propriétaire</h2>
-</div>
-<span class="text-label-sm font-label-sm bg-surface-neutral text-on-surface-variant px-1.5 py-0.5 rounded border border-border-subtle">
-            256-BIT SECURE
-          </span>
-</div>
-<p class="text-body-sm font-body-sm text-on-surface-variant mb-4">
-          Enter your 4-6 digit Owner PIN to confirm transaction authorization.
-        </p>
-<!-- Masked Dot Inputs -->
-<div class="flex justify-center items-center gap-3 py-2 mb-4 bg-surface-neutral rounded border border-border-subtle">
-<div class="w-4 h-4 rounded-full border-2 border-primary bg-primary" id="dot-0"></div>
-<div class="w-4 h-4 rounded-full border-2 border-primary bg-primary" id="dot-1"></div>
-<div class="w-4 h-4 rounded-full border-2 border-primary bg-surface-canvas" id="dot-2"></div>
-<div class="w-4 h-4 rounded-full border-2 border-border-subtle bg-surface-canvas" id="dot-3"></div>
-<div class="w-4 h-4 rounded-full border-2 border-border-subtle bg-surface-canvas" id="dot-4"></div>
-<div class="w-4 h-4 rounded-full border-2 border-border-subtle bg-surface-canvas" id="dot-5"></div>
-</div>
-<!-- Custom Numeric Keypad (48px Touch Targets) -->
-<div class="grid grid-cols-3 gap-2 mb-3">
-<button class="keypad-btn h-12 bg-surface-neutral hover:bg-surface-container active:bg-primary active:text-on-primary text-headline-sm font-headline-sm text-on-surface rounded border border-border-subtle flex items-center justify-center" type="button">1</button>
-<button class="keypad-btn h-12 bg-surface-neutral hover:bg-surface-container active:bg-primary active:text-on-primary text-headline-sm font-headline-sm text-on-surface rounded border border-border-subtle flex items-center justify-center" type="button">2</button>
-<button class="keypad-btn h-12 bg-surface-neutral hover:bg-surface-container active:bg-primary active:text-on-primary text-headline-sm font-headline-sm text-on-surface rounded border border-border-subtle flex items-center justify-center" type="button">3</button>
-<button class="keypad-btn h-12 bg-surface-neutral hover:bg-surface-container active:bg-primary active:text-on-primary text-headline-sm font-headline-sm text-on-surface rounded border border-border-subtle flex items-center justify-center" type="button">4</button>
-<button class="keypad-btn h-12 bg-surface-neutral hover:bg-surface-container active:bg-primary active:text-on-primary text-headline-sm font-headline-sm text-on-surface rounded border border-border-subtle flex items-center justify-center" type="button">5</button>
-<button class="keypad-btn h-12 bg-surface-neutral hover:bg-surface-container active:bg-primary active:text-on-primary text-headline-sm font-headline-sm text-on-surface rounded border border-border-subtle flex items-center justify-center" type="button">6</button>
-<button class="keypad-btn h-12 bg-surface-neutral hover:bg-surface-container active:bg-primary active:text-on-primary text-headline-sm font-headline-sm text-on-surface rounded border border-border-subtle flex items-center justify-center" type="button">7</button>
-<button class="keypad-btn h-12 bg-surface-neutral hover:bg-surface-container active:bg-primary active:text-on-primary text-headline-sm font-headline-sm text-on-surface rounded border border-border-subtle flex items-center justify-center" type="button">8</button>
-<button class="keypad-btn h-12 bg-surface-neutral hover:bg-surface-container active:bg-primary active:text-on-primary text-headline-sm font-headline-sm text-on-surface rounded border border-border-subtle flex items-center justify-center" type="button">9</button>
-<button class="keypad-btn h-12 bg-surface-neutral hover:bg-surface-container text-on-surface-variant rounded border border-border-subtle flex items-center justify-center text-label-md font-label-md" id="btnClear" type="button">EFFACER</button>
-<button class="keypad-btn h-12 bg-surface-neutral hover:bg-surface-container active:bg-primary active:text-on-primary text-headline-sm font-headline-sm text-on-surface rounded border border-border-subtle flex items-center justify-center" type="button">0</button>
-<button class="keypad-btn h-12 bg-surface-neutral hover:bg-surface-container text-on-surface rounded border border-border-subtle flex items-center justify-center" id="btnBackspace" type="button">
-<span class="material-symbols-outlined text-[20px]">backspace</span>
-</button>
-</div>
-<!-- Action Confirmation Button (Accent Yellow) -->
-<button class="w-full min-h-[48px] bg-secondary-container hover:bg-secondary-fixed-dim text-on-secondary-container font-label-lg text-label-lg rounded font-bold flex items-center justify-center gap-2 border border-secondary shadow-sm active:scale-[0.99] transition-transform mb-2" id="btnConfirmPin" type="button">
-<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">shield_with_heart</span>
-          VALIDER L'AUTORISATION TEMPORAIRE
-        </button>
-<p class="text-label-sm font-label-sm text-on-surface-variant text-center leading-snug">
-          Authorizes this specific transaction for 24 hours only. Does not transfer ownership.
-        </p>
-</section>
-<!-- Institutional Legal Footer Notice -->
-<section class="bg-surface-neutral rounded border border-border-subtle p-3 flex items-start gap-2 text-on-surface-variant">
-<span class="material-symbols-outlined text-primary text-[18px] shrink-0 mt-0.5">policy</span>
-<div class="text-[11px] leading-tight">
-<strong>Régulation Ministère des Transports &amp; Voies de Communication:</strong> Toute tentative d'extorsion ou de validation frauduleuse est répertoriée avec géolocalisation et transmise au parquet de Kinshasa.
-        </div>
-</section>
-</main>
+<main class="flex-1 px-space-md py-space-md flex flex-col gap-space-lg"><section class="bg-surface-canvas border border-border-subtle rounded-lg p-4 shadow-sm relative overflow-hidden"><div class="flex items-start gap-2.5 mb-2"><span class="material-symbols-outlined text-primary text-[24px] shrink-0 mt-0.5">shield_with_heart</span><div><h1 class="text-headline-sm font-headline-sm text-on-surface font-bold tracking-tight">Sale authorization request</h1><p class="text-body-sm font-body-sm text-on-surface-variant mt-1 leading-relaxed">Someone is checking your vehicle for purchase. Did you authorize this sale?</p></div></div><div class="bg-surface-neutral border border-border-subtle rounded-lg p-3 my-3 space-y-1.5"><div class="text-body-md font-body-md font-semibold text-on-surface">2018 Toyota RAV4 (Silver) • Plate: 0123AB01</div><div class="text-body-sm font-body-sm text-on-surface-variant">Request ref: <span class="font-data-mono font-medium text-on-surface">#VR-2026-9841</span></div><div class="text-body-sm font-body-sm text-on-surface-variant pt-1 border-t border-border-subtle flex items-center gap-1.5"><span class="material-symbols-outlined text-[16px] text-status-warning">schedule</span><span class="">Remaining time: <span class="font-semibold text-status-danger" id="countdownTimer">11 mins 31 secs</span> • Silence will automatically deny the sale.</span></div></div><div class="flex flex-col gap-2.5 pt-1"><button class="w-full min-h-[48px] bg-primary-container hover:bg-primary active:scale-[0.99] transition-transform text-on-primary font-label-lg text-label-lg rounded flex items-center justify-center gap-2 shadow-sm font-semibold" id="btnAuthorize" type="button"><span class="material-symbols-outlined text-[20px]">check_circle</span>Yes, I authorized this sale</button><button class="w-full min-h-[48px] bg-surface-canvas hover:bg-error-container text-status-danger border-1.5 border-status-danger rounded font-label-lg text-label-lg flex items-center justify-center gap-2 active:scale-[0.99] transition-transform font-semibold" id="btnDeny" type="button"><span class="material-symbols-outlined text-[20px]">cancel</span>No, I did not authorize it</button><div class="text-center pt-1"><button class="inline-flex items-center gap-1.5 text-body-sm font-body-sm text-status-danger hover:underline py-1" type="button"><span class="material-symbols-outlined text-[16px]">report</span><span class="">Report vehicle missing</span></button></div></div></section><section class="bg-surface-canvas border border-border-subtle rounded-lg p-4 shadow-sm" id="pinSection"><div class="flex items-center gap-2 border-b border-border-subtle pb-2 mb-3"><span class="material-symbols-outlined text-primary text-[20px]">lock</span><h2 class="text-headline-sm font-headline-sm text-primary font-bold">Enter Owner PIN to confirm</h2></div><p class="text-body-sm font-body-sm text-on-surface-variant mb-4 leading-relaxed">Applies only to this transaction for the configured 24-hour validity. Does not transfer ownership.</p><div class="flex justify-center items-center gap-3 py-2 mb-4 bg-surface-neutral rounded border border-border-subtle"><div class="w-4 h-4 rounded-full border-2 border-primary bg-primary" id="dot-0"></div><div class="w-4 h-4 rounded-full border-2 border-primary bg-primary" id="dot-1"></div><div class="w-4 h-4 rounded-full border-2 border-primary bg-surface-canvas" id="dot-2"></div><div class="w-4 h-4 rounded-full border-2 border-border-subtle bg-surface-canvas" id="dot-3"></div><div class="w-4 h-4 rounded-full border-2 border-border-subtle bg-surface-canvas" id="dot-4"></div><div class="w-4 h-4 rounded-full border-2 border-border-subtle bg-surface-canvas" id="dot-5"></div></div><div class="grid grid-cols-3 gap-2 mb-3"><button class="keypad-btn min-h-[48px] h-12 bg-surface-neutral hover:bg-surface-container active:bg-primary active:text-on-primary text-headline-sm font-headline-sm text-on-surface rounded border border-border-subtle flex items-center justify-center" type="button">1</button><button class="keypad-btn min-h-[48px] h-12 bg-surface-neutral hover:bg-surface-container active:bg-primary active:text-on-primary text-headline-sm font-headline-sm text-on-surface rounded border border-border-subtle flex items-center justify-center" type="button">2</button><button class="keypad-btn min-h-[48px] h-12 bg-surface-neutral hover:bg-surface-container active:bg-primary active:text-on-primary text-headline-sm font-headline-sm text-on-surface rounded border border-border-subtle flex items-center justify-center" type="button">3</button><button class="keypad-btn min-h-[48px] h-12 bg-surface-neutral hover:bg-surface-container active:bg-primary active:text-on-primary text-headline-sm font-headline-sm text-on-surface rounded border border-border-subtle flex items-center justify-center" type="button">4</button><button class="keypad-btn min-h-[48px] h-12 bg-surface-neutral hover:bg-surface-container active:bg-primary active:text-on-primary text-headline-sm font-headline-sm text-on-surface rounded border border-border-subtle flex items-center justify-center" type="button">5</button><button class="keypad-btn min-h-[48px] h-12 bg-surface-neutral hover:bg-surface-container active:bg-primary active:text-on-primary text-headline-sm font-headline-sm text-on-surface rounded border border-border-subtle flex items-center justify-center" type="button">6</button><button class="keypad-btn min-h-[48px] h-12 bg-surface-neutral hover:bg-surface-container active:bg-primary active:text-on-primary text-headline-sm font-headline-sm text-on-surface rounded border border-border-subtle flex items-center justify-center" type="button">7</button><button class="keypad-btn min-h-[48px] h-12 bg-surface-neutral hover:bg-surface-container active:bg-primary active:text-on-primary text-headline-sm font-headline-sm text-on-surface rounded border border-border-subtle flex items-center justify-center" type="button">8</button><button class="keypad-btn min-h-[48px] h-12 bg-surface-neutral hover:bg-surface-container active:bg-primary active:text-on-primary text-headline-sm font-headline-sm text-on-surface rounded border border-border-subtle flex items-center justify-center" type="button">9</button><button class="keypad-btn min-h-[48px] h-12 bg-surface-neutral hover:bg-surface-container text-on-surface-variant rounded border border-border-subtle flex items-center justify-center text-label-md font-label-md uppercase tracking-wider" id="btnClear" type="button">Clear</button><button class="keypad-btn min-h-[48px] h-12 bg-surface-neutral hover:bg-surface-container active:bg-primary active:text-on-primary text-headline-sm font-headline-sm text-on-surface rounded border border-border-subtle flex items-center justify-center" type="button">0</button><button class="keypad-btn min-h-[48px] h-12 bg-surface-neutral hover:bg-surface-container text-on-surface rounded border border-border-subtle flex items-center justify-center" id="btnBackspace" type="button"><span class="material-symbols-outlined text-[20px]">backspace</span></button></div><button class="w-full min-h-[48px] bg-secondary-container hover:bg-secondary-fixed-dim text-primary font-label-lg text-label-lg rounded font-bold flex items-center justify-center gap-2 border border-secondary shadow-sm active:scale-[0.99] transition-transform mb-2" id="btnConfirmPin" type="button"><span class="material-symbols-outlined text-[20px]">lock_open</span>Confirm authorization</button></section><section class="bg-surface-neutral rounded border border-border-subtle p-3 flex items-start gap-2 text-on-surface-variant"><span class="material-symbols-outlined text-primary text-[18px] shrink-0 mt-0.5">info</span><div class="text-[11px] leading-relaxed">AutoGuardian alerts you whenever an inquiry is submitted. Keep your PIN private.</div></section></main>
 <!-- BottomNavBar (from Shared Components JSON: 4 tabs: Recherche, Sceller, Registres, Profil) -->
 <!-- High priority alert screen: Alert active state mapped accurately -->
-<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-space-xs py-space-xs h-16 bg-surface border-t border-border-subtle max-w-[390px] mx-auto right-0">
-<!-- Item 1: Recherche -->
-<button class="flex flex-col items-center justify-center min-w-[64px] min-h-[48px] text-on-surface-variant px-space-sm py-space-xs font-label-sm text-label-sm hover:bg-surface-container" type="button">
-<span class="material-symbols-outlined text-[22px]">search</span>
-<span>Recherche</span>
-</button>
-<!-- Item 2: Sceller (Active Flow for Authorization/Sealing) -->
-<button class="flex flex-col items-center justify-center min-w-[64px] min-h-[48px] bg-secondary-container text-on-secondary-container rounded-lg px-space-sm py-space-xs font-label-sm text-label-sm" type="button">
-<div class="relative flex items-center justify-center">
-<span class="material-symbols-outlined text-[22px]" style="font-variation-settings: 'FILL' 1;">qr_code_scanner</span>
-<span class="absolute -top-1 -right-2 w-3.5 h-3.5 bg-status-danger text-on-primary text-[9px] font-bold rounded-full flex items-center justify-center">1</span>
-</div>
-<span>Sceller</span>
-</button>
-<!-- Item 3: Registres -->
-<button class="flex flex-col items-center justify-center min-w-[64px] min-h-[48px] text-on-surface-variant px-space-sm py-space-xs font-label-sm text-label-sm hover:bg-surface-container" type="button">
-<span class="material-symbols-outlined text-[22px]">assignment</span>
-<span>Registres</span>
-</button>
-<!-- Item 4: Profil -->
-<button class="flex flex-col items-center justify-center min-w-[64px] min-h-[48px] text-on-surface-variant px-space-sm py-space-xs font-label-sm text-label-sm hover:bg-surface-container" type="button">
-<span class="material-symbols-outlined text-[22px]">shield_person</span>
-<span>Profil</span>
-</button>
-</nav>
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-space-xs py-space-xs h-16 bg-surface border-t border-border-subtle max-w-[390px] mx-auto right-0"><button class="flex flex-col items-center justify-center min-w-[64px] min-h-[48px] text-on-surface-variant px-space-sm py-space-xs font-label-sm text-label-sm hover:bg-surface-container" type="button"><span class="material-symbols-outlined text-[22px]">search</span><span class="">Check</span></button><button class="flex flex-col items-center justify-center min-w-[64px] min-h-[48px] text-on-surface-variant px-space-sm py-space-xs font-label-sm text-label-sm hover:bg-surface-container" type="button"><span class="material-symbols-outlined text-[22px]">directions_car</span><span class="">My vehicles</span></button><button class="flex flex-col items-center justify-center min-w-[64px] min-h-[48px] bg-secondary-container text-on-secondary-container rounded-lg px-space-sm py-space-xs font-label-sm text-label-sm font-semibold" type="button"><div class="relative flex items-center justify-center"><span class="material-symbols-outlined text-[22px]" style="font-variation-settings: 'FILL' 1;">notifications</span><span class="absolute -top-1 -right-2 w-3.5 h-3.5 bg-status-danger text-on-primary text-[9px] font-bold rounded-full flex items-center justify-center">1</span></div><span class="">Alerts</span></button><button class="flex flex-col items-center justify-center min-w-[64px] min-h-[48px] text-on-surface-variant px-space-sm py-space-xs font-label-sm text-label-sm hover:bg-surface-container" type="button"><span class="material-symbols-outlined text-[22px]">person</span><span class="">Account</span></button></nav>
 </div>
 <!-- Micro-interactions Script -->
 <script>
@@ -430,4 +234,6 @@
       });
     }
   </script>
+
+
 </body></html>

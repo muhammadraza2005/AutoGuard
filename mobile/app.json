@@ -1,0 +1,53 @@
+{
+  "expo": {
+    "name": "AutoGuardian",
+    "slug": "autoguardian",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "autoguardian",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.autoguardian.mobile"
+    },
+    "android": {
+      "package": "com.autoguardian.mobile",
+      "blockedPermissions": [
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.RECORD_AUDIO"
+      ],
+      "adaptiveIcon": {
+        "backgroundColor": "#FFFFFF",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro",
+      "output": "single"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      ["expo-secure-store", { "configureAndroidBackup": true }],
+      ["expo-sqlite", { "useSQLCipher": true, "enableFTS": false }],
+      "expo-localization",
+      ["expo-camera", {
+        "cameraPermission": "Allow AutoGuardian to scan seal QR codes and capture enrollment evidence.",
+        "recordAudioAndroid": false,
+        "barcodeScannerEnabled": true
+      }],
+      ["expo-image-picker", {
+        "photosPermission": "Allow AutoGuardian to select vehicle and enrollment photos.",
+        "cameraPermission": "Allow AutoGuardian to capture vehicle and enrollment photos.",
+        "microphonePermission": false
+      }],
+      "expo-notifications"
+    ]
+  }
+}
