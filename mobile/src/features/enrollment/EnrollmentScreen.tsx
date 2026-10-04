@@ -1,0 +1,35 @@
+import { useState } from 'react';
+import { View, TextInput, Pressable } from 'react-native';
+import { useTranslation } from 'react-i18next';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { Card, Copy, Heading, Label, Action, Notice, StitchPage, stitchStyles as u } from '@/components/ui/Stitch';
+import { colors } from '@/theme/tokens';
+import { runtime } from '@/config/runtime';
+
+export default function EnrollmentScreen() {
+  const {t}=useTranslation(); const [step,setStep]=useState(3); const [code,setCode]=useState('AG-KIN-88222'); const [fourth,setFourth]=useState(false); const [saved,setSaved]=useState(false); const [scan,setScan]=useState(false);
+  const [plate,setPlate]=useState('1842AA10'); const [vin,setVin]=useState('JT7-3910-KSH'); const [phone,setPhone]=useState('');
+  const steps=t('stitch.steps',{returnObjects:true}) as string[]; const positions=t('stitch.positionsList',{returnObjects:true}) as string[];
+  return <StitchPage>
+    <Notice icon="file-tray-full-outline">{t('stitch.draftNotice')}{'\n'}{t('stitch.draftBody')}</Notice>
+    <View style={{gap:10}}><View style={[u.between,{alignItems:'flex-start'}]}><Label style={{flex:1,fontSize:12}}>{t('stitch.step')} {step} {t('stitch.of')} 5: {step===3?t('stitch.installation'):steps[step-1]}</Label><Label style={{color:colors.textMuted,fontSize:11}}>{step*20}% {t('stitch.complete')}</Label></View>
+      <View style={{flexDirection:'row',gap:6}}>{steps.map((label,i)=><Pressable key={label} accessibilityRole="button" onPress={()=>setStep(i+1)} style={{flex:1,gap:5,minHeight:48}}><View style={{height:7,borderRadius:4,backgroundColor:i+1<step?colors.success:i+1===step?colors.primary:colors.border,borderWidth:i+1===step?1:0,borderColor:colors.accent}}/><Copy style={{fontSize:9,lineHeight:13,textAlign:'center',color:i+1===step?colors.primary:colors.textMuted,fontWeight:i+1===step?'700':'400'}}>{i+1}. {label}</Copy></Pressable>)}</View>
+    </View>
+    <View style={[u.inset,{borderLeftWidth:4,borderLeftColor:colors.warning}]}><Label style={u.muted}>{t('stitch.enrolling').toUpperCase()}</Label><Heading style={{fontSize:17}}>Toyota Land Cruiser Prado (2021)</Heading><View style={[u.between,{flexWrap:'wrap'}]}><Copy style={u.badge}>{t('stitch.vin')}: {vin}</Copy><Copy style={{fontSize:11,color:colors.warning,backgroundColor:colors.warningBackground,padding:4}}>{t('stitch.draft')}</Copy></View></View>
+    {step===1 && <Card><Heading>{steps[0]}</Heading><Label>{t('stitch.plate')}</Label><TextInput style={u.input} value={plate} onChangeText={setPlate}/><Label>{t('stitch.vin')}</Label><TextInput style={u.input} value={vin} onChangeText={setVin}/><Label>{t('stitch.ownerPhone')}</Label><TextInput style={u.input} value={phone} onChangeText={setPhone} keyboardType="phone-pad" placeholder="+243"/></Card>}
+    {step===2 && <Card><Heading>{steps[1]}</Heading><Copy>{t('stitch.photosHint')}</Copy><View style={{flexDirection:'row',flexWrap:'wrap',gap:10}}>{[1,2,3,4].map(i=><View key={i} style={{width:'47%',minHeight:94,borderWidth:1,borderStyle:'dashed',borderColor:colors.border,borderRadius:6,alignItems:'center',justifyContent:'center',gap:8,backgroundColor:colors.surface}}><Ionicons name="camera-outline" size={26} color={colors.textMuted}/><Copy style={{fontSize:12}}>{t('stitch.photo')} {i}</Copy></View>)}</View></Card>}
+    {step===3 && <>
+      <Card><View style={u.between}><View style={[u.row,{flex:1}]}><Ionicons name="shield-checkmark-outline" size={20} color={colors.primary}/><Label style={{flex:1}}>{t('stitch.package')}</Label></View><Copy style={{fontSize:10,color:'white',backgroundColor:colors.primary,padding:4,borderRadius:2}}>FOUR_ALARMS</Copy></View><Copy style={u.muted}>{t('stitch.physicalSeals')}</Copy><View style={[u.inset,u.between]}><Label style={{flex:1,fontSize:11}}>{t('stitch.batch')}: B-2026-KSH</Label><Copy style={{flex:1,fontSize:11,lineHeight:16,color:colors.warning}}>{t('stitch.stockRemaining')}</Copy></View></Card>
+      <Label style={{color:colors.textMuted,fontSize:12}}>{t('stitch.positions').toUpperCase()} ({fourth?4:3} / 4 {t('stitch.completed')})</Label>
+      {positions.map((position,i)=><Card key={position} style={i===3&&!fourth?{borderColor:colors.primary,borderWidth:2,backgroundColor:colors.surface}:undefined}><View style={[u.row,{alignItems:'flex-start'}]}><View style={{width:32,height:32,backgroundColor:i===3&&!fourth?'#FFDF94':'#E8F1EB',borderWidth:1,borderColor:i===3&&!fourth?'#D3BC77':'#ABD1BB',alignItems:'center',justifyContent:'center'}}><Ionicons name={i===3&&!fourth?'ellipsis-horizontal':'checkmark'} size={21} color={i===3&&!fourth?colors.warning:colors.success}/></View><View style={{flex:1,gap:3}}>{i===3&&!fourth&&<Label style={{fontSize:11,color:colors.warning}}>{t('stitch.actionRequired').toUpperCase()}</Label>}<Label>{t('stitch.seal')} {i+1}: {position}</Label><Copy style={u.muted}>{i===3&&!fourth?t('stitch.pendingScan'):`Code: AG-KIN-${88219+i}`}</Copy>{(i<3||fourth)&&<View style={u.row}><Ionicons name="camera-outline" size={12} color={colors.success}/><Copy style={{fontSize:10,color:colors.success}}>{t('stitch.photoAttached')}</Copy></View>}</View><Pressable accessibilityRole="button" accessibilityLabel={t('stitch.edit')} onPress={()=>{if(i===3)setFourth(false);else setScan(true);}} style={{minWidth:32,minHeight:40,justifyContent:'center'}}><Ionicons name="pencil-outline" size={18} color={colors.textMuted}/></Pressable></View>
+        {i===3&&!fourth&&<><Action icon="qr-code-outline" label={t('stitch.scanSeal')} onPress={()=>setScan(true)}/><View style={u.divider}/><Label style={u.muted}>{t('stitch.manualCode')}</Label><View style={u.row}><TextInput style={[u.input,{flex:1,fontSize:13}]} value={code} onChangeText={setCode}/><Action secondary label={t('stitch.associate')} disabled={code.trim().length<4} onPress={()=>setFourth(true)} style={{backgroundColor:'#E5EEFF',borderColor:colors.primary}}/></View></>}
+      </Card>)}
+      {scan&&<Notice>{t('check.scanUnavailable')}</Notice>}<Notice>{t('stitch.otpOnline')}</Notice>
+    </>}
+    {step===4&&<Card><Heading>{t('stitch.ownerOtp')}</Heading><Notice>{t('stitch.ownerOtpHint')}</Notice><Label>{t('stitch.ownerPhone')}</Label><TextInput value={phone} onChangeText={setPhone} style={u.input} keyboardType="phone-pad" placeholder="+243"/><Action label={t('stitch.sendCode')} disabled onPress={()=>{}}/></Card>}
+    {step===5&&<Card><Heading>{t('stitch.paymentReview')}</Heading><Label>{plate}</Label><Copy>{t('stitch.package')}</Copy><Notice>{t('stitch.paymentHint')}</Notice><Action label={t('stitch.pending')} disabled onPress={()=>{}}/></Card>}
+    {step<5&&<Action label={t(step===3?'stitch.proceed':'stitch.next')} icon="shield-checkmark-outline" disabled={step===3&&!fourth} onPress={()=>setStep(step+1)}/>}
+    <Action secondary icon="save-outline" label={t(saved?'stitch.draftSaved':'stitch.saveDraft')} onPress={()=>{if(runtime.isDemo)setSaved(true);}} style={{borderColor:colors.primary,borderWidth:2}}/>
+    {step>1&&<Action secondary label={t('stitch.previous')} onPress={()=>setStep(step-1)}/>}
+  </StitchPage>;
+}

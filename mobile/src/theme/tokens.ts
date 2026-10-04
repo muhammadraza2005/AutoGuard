@@ -18,11 +18,10 @@ export const colors = {
 export const spacing = { xs: 4, sm: 8, md: 16, lg: 24, xl: 32 } as const;
 export const radius = { input: 6, button: 6, card: 8 } as const;
 export const typography = {
-  heading: { fontSize: 24, lineHeight: 32, fontWeight: '700' },
-  subheading: { fontSize: 20, lineHeight: 28, fontWeight: '700' },
+  heading: { fontSize: 22, lineHeight: 28, fontWeight: '700' },
+  subheading: { fontSize: 18, lineHeight: 24, fontWeight: '700' },
   body: { fontSize: 16, lineHeight: 24, fontWeight: '400' },
   label: { fontSize: 14, lineHeight: 20, fontWeight: '600' },
   caption: { fontSize: 13, lineHeight: 18, fontWeight: '400' },
 } as const;
-// Use the platform font until Gemini supplies and verifies a bundled Public Sans font.
-
+// Public Sans is bundled in assets/fonts and loaded by the root layout.

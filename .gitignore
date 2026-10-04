@@ -1,7 +1,7 @@
 # Local install caches
 .npm-cache/
+.tools/
 # Private local configuration
 .env
 .env.*
 !.env.example
-

@@ -1,5 +1,9 @@
 # AutoGuardian
 
+Current Gemini frontend review: [completion audit](docs/FRONTEND-AUDIT.md).
+Double-click `Preview App.cmd` for the browser preview.
+Native setup and launcher: [Android setup](docs/ANDROID-SETUP.md).
+
 The Android-first React Native foundation is in [mobile/](mobile/README.md).
 The product screens are ready for Gemini to implement.
 

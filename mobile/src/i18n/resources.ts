@@ -1,6 +1,10 @@
+import { stitchEn, stitchFr } from './stitchResources';
+import { flowEn, flowFr } from './flowResources';
 export const resources = {
   en: {
     translation: {
+      stitch: stitchEn,
+      flow: flowEn,
       brand: 'AutoGuardian',
       common: {
         preview: 'Design preview — synthetic data',
@@ -19,6 +23,8 @@ export const resources = {
       },
       check: {
         title: 'Check a vehicle',
+        scanTitle: 'QR scanning unavailable',
+        scanUnavailable: 'Camera scanning has not been implemented yet. Return to Check and enter the seal code manually.',
         description: "Check the vehicle, then wait for the owner's confirmation before paying the seller.",
         pending: 'The verification flow will be built here using the revised Stitch HTML and frontend.md.',
       },
@@ -43,6 +49,8 @@ export const resources = {
   },
   fr: {
     translation: {
+      stitch: stitchFr,
+      flow: flowFr,
       brand: 'AutoGuardian',
       common: {
         preview: 'Aperçu du design — données fictives',
@@ -61,6 +69,8 @@ export const resources = {
       },
       check: {
         title: 'Vérifier un véhicule',
+        scanTitle: 'Lecture QR indisponible',
+        scanUnavailable: 'La lecture par caméra reste à implémenter. Revenez à la vérification et saisissez le code du scellé manuellement.',
         description: "Vérifiez le véhicule, puis attendez la confirmation du propriétaire avant de payer le vendeur.",
         pending: 'Le parcours de vérification sera créé ici à partir du HTML Stitch révisé et de frontend.md.',
       },
@@ -84,4 +94,3 @@ export const resources = {
     },
   },
 } as const;
-

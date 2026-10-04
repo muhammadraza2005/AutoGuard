@@ -1,5 +1,9 @@
 # AutoGuardian mobile foundation
 
+Gemini has since added a partial frontend prototype. See the current
+[frontend audit](../docs/FRONTEND-AUDIT.md) and [local Android setup](../docs/ANDROID-SETUP.md).
+Double-click `../Preview App.cmd` to preview, or `../Android App.cmd` for a USB Android phone.
+
 One Expo / React Native TypeScript app for Android first. This is a working navigation
 and integration foundation; the business screens are intentional placeholders for Gemini.
 Use [the Gemini prompt](../docs/GEMINI-FRONTEND-PROMPT.md) from the repository root.
@@ -41,8 +45,11 @@ The local .npmrc keeps the install cache in the repository's ignored .npm-cache 
 ## Native Android
 
 SQLCipher requires a custom development build; Expo Go is not the full native test target.
-JDK/adb were not detected on PATH, and Android Studio/default SDK were not found at standard locations.
-No Android toolchain was installed by this setup.
+JDK 17, adb, Android SDK 36/build tools, NDK, CMake and Gradle are now installed
+under the project's ignored `.tools/` directory. `Android App.cmd` configures their
+paths for its process. Android Studio is not required for this command-line setup.
+The emulator executable is installed, but a system image/AVD and working hypervisor
+still need setup; no Android phone was connected during the review.
 
 After configuring Android Studio, a matching JDK/SDK and emulator/device:
 
