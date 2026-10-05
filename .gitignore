@@ -1,6 +1,10 @@
 # Local install caches
 .npm-cache/
 .tools/
+# Numbered client binaries are delivered separately from source control.
+releases/**/*.apk
+releases/**/*.sha256
+releases/**/*.build.json
 # Private local configuration
 .env
 .env.*

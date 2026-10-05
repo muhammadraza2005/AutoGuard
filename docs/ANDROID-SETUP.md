@@ -13,6 +13,9 @@ Installed components for this project:
 - Android Emulator binary, NDK 27.1.12297006 and CMake 3.22.1.
 - Gradle through Expo's generated Android wrapper.
 - Expo-compatible `expo-system-ui` for native light-interface configuration.
+- Project-local Ninja upgraded from 1.10.2 to 1.13.2 for Windows long-path support
+  during the client APK build. The original is backed up beside the SDK executable.
+  Official archive SHA-256: `07fc8261b42b20e71d1720b39068c2e14ffcee6396b76fb7a795fb460b78dc65`.
 
 `mobile/android` is generated and ignored. Regenerate it with
 `npx.cmd expo prebuild --platform android --no-install` after native configuration

@@ -2,6 +2,7 @@
 
 Gemini has since added a partial frontend prototype. See the current
 [frontend audit](../docs/FRONTEND-AUDIT.md) and [local Android setup](../docs/ANDROID-SETUP.md).
+For standalone numbered client demos, see [client APK builds](../docs/CLIENT-APK-BUILDS.md).
 Double-click `../Preview App.cmd` to preview, or `../Android App.cmd` for a USB Android phone.
 
 One Expo / React Native TypeScript app for Android first. This is a working navigation
