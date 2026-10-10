@@ -12,11 +12,13 @@ export const readinessSchema = z.object({
   draftId: z.uuid(), draftRevision: z.number().int().positive(), fittingRevision: z.number().int().nonnegative(),
   package: z.enum(['NONE', 'STANDARD', 'ONE_ALARM', 'FOUR_ALARMS']).nullable(),
   vehicle: z.object({ chassisIdentifier: z.string().min(1), plate: z.string().nullable(), category: z.string().min(1) }),
-  sampleOnly: z.literal(true), canSubmit: z.literal(false), enrollmentActive: z.literal(false),
+  mode:z.enum(['DEVELOPMENT','PRODUCTION']).optional().default('DEVELOPMENT'),
+  sampleOnly: z.boolean(), canSubmit: z.literal(false), enrollmentActive: z.literal(false),
   checks: z.array(checkSchema).length(checkCodes.length),
   evidenceChecklist: evidenceChecklistSchema,
   sealValidation: sealValidationSchema,
 }).superRefine((value, ctx) => {
+  if(value.sampleOnly!==(value.mode==='DEVELOPMENT'))ctx.addIssue({code:'custom',message:'Invalid registration mode.'});
   if(value.sealValidation.required!==(value.package!=='NONE')
     || value.sealValidation.issues.includes('PACKAGE_REQUIRED')!==(value.package===null)
     || value.sealValidation.issues.includes('STALE_FITTING')!==(value.checks.find(c=>c.code==='SEAL_FITTING')?.status==='STALE')
@@ -24,7 +26,7 @@ export const readinessSchema = z.object({
     ctx.addIssue({code:'custom',message:'Readiness does not match seal validation.'});
   if (new Set(value.checks.map(c => c.code)).size !== checkCodes.length
     || value.checks.some(c => productionCheckCodes.some(code => code === c.code)
-      ? c.status !== 'UNAVAILABLE'
+      ? value.mode==='DEVELOPMENT' && c.status !== 'UNAVAILABLE'
       : c.status === 'UNAVAILABLE' || (c.status === 'STALE' && c.code !== 'SEAL_FITTING'))
     || value.checks.find(c => c.code === 'VEHICLE_DRAFT')?.status !== 'COMPLETE'
     || (value.package === null && (value.fittingRevision !== 0 || value.checks.find(c => c.code === 'SEAL_FITTING')?.status !== 'MISSING'))

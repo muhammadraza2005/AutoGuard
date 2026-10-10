@@ -9,14 +9,42 @@ import { IdentityVerifier } from './auth';
 import { VehicleStore, vehicleId, vehiclePage } from './vehicles';
 import { EnrollmentStore, draftId, draftInput } from './enrollments';
 import { SealStore, sealFittingInput, sealLocationInput } from './seals';
+import {ProductionSealService} from './productionSeals';
 import { ReadinessStore } from './readiness';
 import { OwnerService } from './owner';
 import { SubmissionStore, submissionInput } from './submission';
 import { RegistrationReviewService } from './registrationReviews';
+import {identityRequest} from './requestIdentity';
+import {ConsentStore,consentInput} from './consent';
+
+@Controller('me/registration-consents')
+class ConsentController {
+  constructor(@Inject('CONSENT_AUTH') private readonly auth:IdentityVerifier,@Inject('CONSENTS') private readonly store:ConsentStore){}
+  private query(q:Record<string,unknown>){if(Object.keys(q).length)throw new BadRequestException({code:'UNEXPECTED_QUERY_FIELDS'});}
+  @Get() async list(@Headers('authorization') h:string|undefined,@Query() q:Record<string,unknown>){
+    const actor=await this.auth.verify(h);this.query(q);return this.store.list(actor);
+  }
+  @Get(':id') async read(@Headers('authorization') h:string|undefined,@Param('id') id:string,@Query() q:Record<string,unknown>){
+    const actor=await this.auth.verify(h);this.query(q);return this.store.read(actor,draftId(id));
+  }
+  @Post(':id') @HttpCode(200) async change(@Headers('authorization') h:string|undefined,@Param('id') id:string,
+    @Headers('idempotency-key') key:string|undefined,@Body() body:unknown,@Query() q:Record<string,unknown>){
+    const actor=await this.auth.verify(h);this.query(q);return this.store.change(actor,draftId(id),draftId(key),consentInput(body));
+  }
+}
+
+@Controller('me/staff-access')
+class StaffAccessController {
+  constructor(@Inject('STAFF_PROOF_AUTH') private readonly auth:IdentityVerifier,@Inject('CONSENTS') private readonly store:ConsentStore){}
+  @Get() async read(@Headers('authorization') h:string|undefined,@Query() q:Record<string,unknown>){
+    const actor=await this.auth.verify(h);if(Object.keys(q).length)throw new BadRequestException({code:'UNEXPECTED_QUERY_FIELDS'});
+    return this.store.staffStatus(actor);
+  }
+}
 
 @Controller('registration-reviews')
 class RegistrationReviewController {
-  constructor(@Inject('AUTH') private readonly auth: IdentityVerifier,
+  constructor(@Inject('STAFF_AUTH') private readonly auth: IdentityVerifier,
     @Inject('REGISTRATION_REVIEWS') private readonly reviews: RegistrationReviewService) {}
   @Get() async queue(@Headers('authorization') header: string | undefined, @Query() query: Record<string,unknown>) {
     const actor=await this.auth.verify(header);
@@ -201,7 +229,7 @@ class EnrollmentController {
 
 @Controller()
 class AccountController {
-  constructor(@Inject('AUTH') private readonly auth: IdentityVerifier,
+  constructor(@Inject('ACCOUNT_AUTH') private readonly auth: IdentityVerifier,
     @Inject('ACCOUNTS') private readonly accounts: AccountStore) {}
   @Get('health') health() { return { status: 'ok' }; }
   @Get('me') async me(@Headers('authorization') header: string | undefined) {
@@ -250,23 +278,52 @@ class ApiErrors implements ExceptionFilter {
   }
 }
 
+@Controller('registration-seals')
+class ProductionSealController {
+  constructor(@Inject('STAFF_PROOF_AUTH') private readonly auth:IdentityVerifier,@Inject('PRODUCTION_SEALS') private readonly seals:ProductionSealService) {}
+  private query(query:Record<string,unknown>) {if(Object.keys(query).length)throw new BadRequestException({code:'UNEXPECTED_QUERY_FIELDS'});}
+  @Post('batches') @HttpCode(200) async issue(@Headers('authorization') header:string|undefined,@Headers('idempotency-key') key:string|undefined,@Body() body:unknown,@Query() query:Record<string,unknown>) {
+    const actor=await this.auth.verify(header);this.query(query);return this.seals.issue(actor,draftId(key),body);
+  }
+  @Post('verify') @HttpCode(200) async verify(@Headers('authorization') header:string|undefined,@Body() body:unknown,@Query() query:Record<string,unknown>) {
+    const actor=await this.auth.verify(header);this.query(query);return this.seals.verify(actor,body);
+  }
+  @Post('revocations') @HttpCode(200) async revoke(@Headers('authorization') header:string|undefined,@Headers('idempotency-key') key:string|undefined,@Body() body:unknown,@Query() query:Record<string,unknown>) {
+    const actor=await this.auth.verify(header);this.query(query);return this.seals.revoke(actor,draftId(key),body);
+  }
+  @Get(':id/inspection') async read(@Headers('authorization') header:string|undefined,@Param('id') id:string,@Query() query:Record<string,unknown>) {
+    const actor=await this.auth.verify(header);this.query(query);return this.seals.read(actor,draftId(id));
+  }
+  @Post(':id/inspection') @HttpCode(200) async inspect(@Headers('authorization') header:string|undefined,@Param('id') id:string,@Headers('idempotency-key') key:string|undefined,@Body() body:unknown,@Query() query:Record<string,unknown>) {
+    const actor=await this.auth.verify(header);this.query(query);return this.seals.inspect(actor,draftId(id),draftId(key),body);
+  }
+}
+
 export async function createApp(auth: IdentityVerifier, accounts: AccountStore, corsOrigin?: string, vehicles?: VehicleStore,
-  enrollments?: { auth: IdentityVerifier; store: EnrollmentStore; evidence?:EvidenceService; seals?:SealStore; readiness?:ReadinessStore; owner?:OwnerService; submission?:SubmissionStore; registrationReviews?:RegistrationReviewService }) {
+  enrollments?: { auth: IdentityVerifier; store: EnrollmentStore; evidence?:EvidenceService; seals?:SealStore; productionSeals?:ProductionSealService; readiness?:ReadinessStore; owner?:OwnerService; submission?:SubmissionStore; registrationReviews?:RegistrationReviewService },
+  access?:{accountAuth:IdentityVerifier;staffAuth:IdentityVerifier;staffProofAuth?:IdentityVerifier;consentAuth?:IdentityVerifier;consents?:ConsentStore}) {
   @Module({ controllers: [AccountController, ...(vehicles ? [VehicleController] : []), ...(enrollments ? [EnrollmentController] : []),
     ...(enrollments?.evidence?[EvidenceController]:[]),...(enrollments?.seals?[SealStockController,SealFittingController]:[]),
+    ...(enrollments?.productionSeals?[ProductionSealController]:[]),
     ...(enrollments?.readiness?[ReadinessController]:[]), ...(enrollments?.owner?[OwnerController]:[]), ...(enrollments?.submission?[SubmissionController]:[]),
-    ...(enrollments?.registrationReviews?[RegistrationReviewController]:[])], providers: [
+    ...(enrollments?.registrationReviews?[RegistrationReviewController]:[]),...(access?.consents?[ConsentController,StaffAccessController]:[])], providers: [
     { provide: 'AUTH', useValue: auth }, { provide: 'ACCOUNTS', useValue: accounts },
+    {provide:'ACCOUNT_AUTH',useValue:access?.accountAuth??auth},{provide:'STAFF_AUTH',useValue:access?.staffAuth??enrollments?.auth??auth},
+    {provide:'STAFF_PROOF_AUTH',useValue:access?.staffProofAuth??access?.staffAuth??auth},
+    {provide:'CONSENT_AUTH',useValue:access?.consentAuth??access?.accountAuth??auth},
+    ...(access?.consents?[{provide:'CONSENTS',useValue:access.consents}]:[]),
     ...(vehicles ? [{ provide: 'VEHICLES', useValue: vehicles }] : []),
     ...(enrollments ? [{provide:'DRAFT_AUTH',useValue:enrollments.auth},{provide:'ENROLLMENTS',useValue:enrollments.store}] : []),
     ...(enrollments?.evidence?[{provide:'EVIDENCE',useValue:enrollments.evidence}]:[]),
     ...(enrollments?.seals?[{provide:'SEALS',useValue:enrollments.seals}]:[]),
+    ...(enrollments?.productionSeals?[{provide:'PRODUCTION_SEALS',useValue:enrollments.productionSeals}]:[]),
     ...(enrollments?.readiness?[{provide:'READINESS',useValue:enrollments.readiness}]:[]),
     ...(enrollments?.owner?[{provide:'OWNER',useValue:enrollments.owner}]:[]),
     ...(enrollments?.submission?[{provide:'SUBMISSION',useValue:enrollments.submission}]:[]),
     ...(enrollments?.registrationReviews?[{provide:'REGISTRATION_REVIEWS',useValue:enrollments.registrationReviews}]:[]),
   ] }) class AppModule {}
   const app = await NestFactory.create<NestExpressApplication>(AppModule, { logger: false });
+  app.use((_req:unknown,_res:unknown,next:()=>void)=>identityRequest(next));
   app.useBodyParser('json',{limit:enrollments?.evidence?'3mb':'100kb'});
   if (corsOrigin) {
     const origin = new URL(corsOrigin);

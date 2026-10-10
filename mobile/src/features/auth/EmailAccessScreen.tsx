@@ -21,8 +21,8 @@ export default function EmailAccessScreen() {
     catch { setFailed(true); }
     finally { setBusy(false); }
   }
-  return <View style={{ flex: 1 }}><AppHeader /><StitchPage><Heading>{t('devAuth.title')}</Heading>
-    <Notice>{t('devAuth.description')}</Notice>
+  return <View style={{ flex: 1 }}><AppHeader /><StitchPage><Heading>{t(runtime.developmentEmailAuth?'devAuth.title':'accessSecurity.signIn')}</Heading>
+    <Notice>{t(runtime.developmentEmailAuth?'devAuth.description':'accessSecurity.signInDescription')}</Notice>
     <Card><Label>{t('devAuth.email')}</Label>
       <TextInput accessibilityLabel={t('devAuth.email')} style={stitchStyles.input} value={email}
         onChangeText={setEmail} autoCapitalize="none" autoCorrect={false} keyboardType="email-address"

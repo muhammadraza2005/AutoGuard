@@ -1,5 +1,6 @@
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { Pool, PoolClient } from 'pg';
+import {setRequestIdentity} from './requestIdentity';
 
 export interface AccountStore {
   load(authUserId: string, provision: boolean): Promise<unknown>;
@@ -7,6 +8,16 @@ export interface AccountStore {
 
 export class PostgresAccountStore implements AccountStore {
   constructor(private readonly pool: Pool, private readonly tenantId: string) {}
+  async verifyDevelopmentScope(actor:string){
+    const client=await this.pool.connect();
+    try{
+      await client.query('begin');await client.query('set local role autoguardian_identity_api');
+      await setRequestIdentity(client,this.tenantId,actor);
+      const result=await client.query("select id from app.tenants where id=$1 and code='AUTOGUARDIAN_DEV'",[this.tenantId]);
+      if(!result.rowCount)throw new ForbiddenException({code:'DEVELOPMENT_TENANT_REQUIRED'});
+      await client.query('commit');
+    }catch(error){await client.query('rollback');throw error;}finally{client.release();}
+  }
 
   async checkConnection(): Promise<void> {
     const { rows } = await this.pool.query(`select r.rolname, r.rolsuper, r.rolbypassrls,
@@ -23,8 +34,7 @@ export class PostgresAccountStore implements AccountStore {
     try {
       await client.query('begin');
       await client.query('set local role autoguardian_identity_api');
-      await client.query(`select set_config('autoguardian.tenant_id', $1, true),
-        set_config('autoguardian.auth_user_id', $2, true)`, [this.tenantId, authUserId]);
+      await setRequestIdentity(client,this.tenantId,authUserId);
       const tenant = await client.query(`select id from app.tenants where id=$1 and status='ACTIVE' and deleted_at is null`, [this.tenantId]);
       if (!tenant.rowCount) throw new ForbiddenException({ code: 'AUTHORITY_UNAVAILABLE' });
       if (provision) {

@@ -1,0 +1,88 @@
+{
+  "syntheticOnly": true,
+  "vehicle": {
+    "chassisIdentifier": "AG-M1-TEST-0001",
+    "plate": "AG-TEST-001",
+    "category": "CAR"
+  },
+  "files": [
+    {
+      "file": "01-owner-id.jpg",
+      "kind": "OWNER_ID",
+      "bytes": 36739,
+      "normalizedSha256": "7344e99c9ed7b955f785c1bd8d106ccedbd41081bdc4da12ba4d72260d4f1a57"
+    },
+    {
+      "file": "03-vehicle-front.jpg",
+      "kind": "VEHICLE_FRONT",
+      "bytes": 34339,
+      "normalizedSha256": "a1033c8be2a4f9a8d23e17f7c068e0d1475b5e253d84864aba80dd6a8eb443f9"
+    },
+    {
+      "file": "04-vehicle-rear.jpg",
+      "kind": "VEHICLE_REAR",
+      "bytes": 33959,
+      "normalizedSha256": "56958d6dd72a9b2178cfea271eab69ea33de132bd55225b65c0f637de5d063ea"
+    },
+    {
+      "file": "05-vehicle-left.jpg",
+      "kind": "VEHICLE_LEFT",
+      "bytes": 34005,
+      "normalizedSha256": "bb5919bed69c8a64e5714f5ff7f00fc089025ec6288a909a32ce098ecabae3de"
+    },
+    {
+      "file": "06-vehicle-right.jpg",
+      "kind": "VEHICLE_RIGHT",
+      "bytes": 34537,
+      "normalizedSha256": "e552efc36674c1f66a0a246c9da0d500c192fa68d083b235e66434c95522c815"
+    },
+    {
+      "file": "07-chassis-number.jpg",
+      "kind": "CHASSIS_PHOTO",
+      "bytes": 36428,
+      "normalizedSha256": "164efcb4e819683ed9e13ee349f40f1132a332e0936942a45eea865ce8827f3e"
+    },
+    {
+      "file": "08-number-plate.jpg",
+      "kind": "PLATE_PHOTO",
+      "bytes": 35448,
+      "normalizedSha256": "9fbf63cda36ed0e995cbdee41e0d34436c13a991ad3299c5dcfa88e876122dbe"
+    },
+    {
+      "file": "09-seal-position-1.jpg",
+      "kind": "SEAL_FITTING_PHOTO",
+      "bytes": 37668,
+      "normalizedSha256": "67147a7d49e996539949a2fe815e04a906d119fdd2310932004626a2e2a2db2d"
+    },
+    {
+      "file": "10-seal-position-2.jpg",
+      "kind": "SEAL_FITTING_PHOTO",
+      "bytes": 37766,
+      "normalizedSha256": "6761406f06c252b298a24371f2d18fadf86c3438002cb4fa9752fca05e323f4b"
+    },
+    {
+      "file": "11-seal-position-3.jpg",
+      "kind": "SEAL_FITTING_PHOTO",
+      "bytes": 37718,
+      "normalizedSha256": "a7212b1489981d67f47709d365ba7bc7cfa59970aa8d8cef962e53e0359ee4f5"
+    },
+    {
+      "file": "12-seal-position-4.jpg",
+      "kind": "SEAL_FITTING_PHOTO",
+      "bytes": 37698,
+      "normalizedSha256": "3df4681ff233d9e88a375d6813b35025bac4b13a5ef90b58e806611ccd0c26a5"
+    },
+    {
+      "file": "02-registration-document.pdf",
+      "kind": "REGISTRATION_DOCUMENT",
+      "bytes": 862,
+      "normalizedSha256": "457e87f6ccfaa7ad3484492e56b4fd380ccfbe0032c216103d3379043360593d"
+    },
+    {
+      "file": "Optional-purchase-proof.pdf",
+      "kind": "PURCHASE_PROOF",
+      "bytes": 855,
+      "normalizedSha256": "39374573ce67876f297e51cdc902b57be095f50346bde9cd059df63ac3219471"
+    }
+  ]
+}

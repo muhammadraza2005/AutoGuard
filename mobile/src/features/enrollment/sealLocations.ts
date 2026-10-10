@@ -10,8 +10,10 @@ export const sealLocationsSchema = z.object({ version: z.literal(1), draftId: z.
   draftRevision: z.number().int().positive(), fittingRevision: z.number().int().nonnegative(), locationRevision: z.number().int().nonnegative(),
   package: z.enum(['NONE', 'STANDARD', 'ONE_ALARM', 'FOUR_ALARMS']).nullable(), required: z.boolean(),
   current: z.boolean(), complete: z.boolean(), locations: z.array(location).max(4), savedAt: z.string().nullable(),
-  sampleOnly: z.literal(true), policyVerified: z.literal(false), physicalVerified: z.literal(false),
+  mode:z.enum(['DEVELOPMENT','PRODUCTION']).optional().default('DEVELOPMENT'),
+  sampleOnly: z.boolean(), policyVerified: z.literal(false), physicalVerified: z.literal(false),
 }).superRefine((value, ctx) => {
+  if(value.sampleOnly!==(value.mode==='DEVELOPMENT'))ctx.addIssue({code:'custom',message:'Invalid registration mode.'});
   if (value.required !== (value.package !== 'NONE')
     || new Set(value.locations.map(item => item.position)).size !== value.locations.length
     || (!value.current && (value.locations.length > 0 || value.savedAt !== null))

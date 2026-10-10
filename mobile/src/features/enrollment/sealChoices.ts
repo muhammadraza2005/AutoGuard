@@ -1,6 +1,6 @@
 import type {SealPackage} from './seals';
 type Slot={position:number;sealCode:string};
-export type SealChoice={code:string;type:'STANDARD'|'ALARM';status:'IN_STOCK'|'REVOKED'|'DESTROYED';available:boolean};
+export type SealChoice={code:string;type:'STANDARD'|'ALARM';status:'IN_STOCK'|'ACTIVE'|'REVOKED'|'DESTROYED';available:boolean};
 export function availableSealChoices(packageValue:SealPackage,position:number,slots:Slot[],stock:SealChoice[],saved:{sealCode:string;sealType:'STANDARD'|'ALARM'}[]){
   if(packageValue==='NONE')return [];
   const other=slots.filter(s=>s.position!==position && s.sealCode);

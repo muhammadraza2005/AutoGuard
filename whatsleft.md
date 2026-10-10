@@ -29,15 +29,16 @@ The four milestones below are the working plan for the upcoming development. Bui
 - [x] Development preview identities and section-navigation guards.
 - [x] API request helper, optional Supabase client setup, and native session-storage adapter.
 - [x] NestJS identity/profile, owner vehicle reads and development enrollment APIs.
-- [x] Seventeen database migrations in source, tenant isolation, restricted database roles, row-level security and scoped audit records. Hosted 011–016 are confirmed; 017 for independent review is locally tested and pending installation.
+- [x] Twenty database migrations in source, tenant isolation, restricted database roles, row-level security and scoped audit records. Hosted 019 is confirmed with all verification results true; it requires 017/018. New integration migration 020 awaits installation.
 - [x] Connected development enrollment drafts, encrypted sample owner details/consent, browser sample evidence and provisional seal fitting with QR/manual checks.
 - [x] Hosted development migrations 011–012 and encrypted private Storage round-trip/access denial verified.
 - [x] Saved four-slot development seal location descriptions with revision conflicts, retries, stale-data hiding and English/French form/review controls. See [setup and acceptance](docs/DEVELOPMENT-SEAL-LOCATIONS.md).
 - [x] Development evidence self-review in the browser: sample downloads, acceptable/correction decisions, fixed reasons, append-only history, exact retries and revision invalidation. Production approval remains pending. See [setup and acceptance](docs/DEVELOPMENT-EVIDENCE-REVIEWS.md).
 - [x] Encrypted native vehicle/seal/owner recovery, attachment/review/submission retry journals, camera/file selection and image/PDF viewing. Automated PDF rendering checks pass; physical-device acceptance remains pending. See [native guide](docs/DEVELOPMENT-NATIVE-EVIDENCE.md).
 - [x] Submission/finalization component with trusted prerequisite checks, duplicate protection, atomic vehicle/ownership/audit writes and owner-only reads. Hosted 016 is installed. Samples cannot activate; remaining trusted integrations are required. See [setup](docs/ENROLLMENT-SUBMISSION.md).
-- [x] Independent authority review, correction/replacement, audit history, agent feedback and trusted review confirmations under the approved TENANT_ADMIN policy. Migration 017 is pending; see [setup](docs/REGISTRATION-REVIEWS.md).
-- [x] Latest checks: backend build and 38 tests; mobile TypeScript/lint and 60 tests; 123 database foundation checks; offline dependency compatibility with its reliability warning.
+- [x] Independent authority review, correction/replacement, audit history, agent feedback and trusted review confirmations under the approved TENANT_ADMIN policy. 017 is required by verified 019; see [setup](docs/REGISTRATION-REVIEWS.md).
+- [x] Password/TOTP staff authentication, live session/factor revocation checks, production draft entrypoint and direct owner consent/withdrawal with immutable bilingual versions and trusted access receipts. 018 is required by verified 019; real approved wording still requires replacing delegated placeholders; see [exact setup](docs/AGENT-ACCESS-CONSENT.md).
+- [x] Latest integration checks: backend build and 58 tests; mobile TypeScript/lint and 68 tests; exact test-pack PDFs parsed/rendered. The earlier baseline passed 123 database foundation checks. Offline dependency compatibility passed with its reliability warning.
 - [x] Web and Android Hermes bundles exported successfully.
 
 **Still to verify:** signed-in browser/camera interaction, French wrapping, keyboard/accessibility behavior and Android device acceptance. Phone testing was deferred by the project owner. Bundle exports do not establish native encryption or release acceptance. See [the verification report](docs/ENROLLMENT-VERIFICATION-2026-10-10.md).
@@ -68,17 +69,18 @@ The four milestones below are the working plan for the upcoming development. Bui
 
 ### Milestone 1 — Finish vehicle registration: start here now
 
-Build on the existing backend, database and enrollment wizard. Complete login/agent permissions, authenticated consent, document/photo handling, production QR seals, independent review, payment handling and gated vehicle activation. Connect these to the agent app and owner vehicle list. SMS and owner phone OTP integration are assigned to Milestone 2 by the project owner; verification hooks remain part of the activation prerequisites. Real registration stays gated until every required identity, consent, evidence, seal, payment and review check is satisfied. Manual browser/device acceptance is retained for the end.
+Build on the existing backend, database and enrollment wizard. Complete login/agent permissions, authenticated consent, document/photo handling, production QR seals, independent review and gated vehicle activation. All payment-provider integration is deferred to Milestone 3 by the project owner. Connect these to the agent app and owner vehicle list. SMS and owner phone OTP integration are assigned to Milestone 2 by the project owner; verification hooks remain part of the activation prerequisites. Real registration stays gated until every required identity, consent, evidence, seal, payment and review check is satisfied. Manual browser/device acceptance is retained for the end.
+
+Registration integration and the exact synthetic upload folder are prepared. Follow [setup and manual acceptance](docs/PRODUCTION-REGISTRATION-SETUP.md). Payments remain Milestone 3 and phone proof Milestone 2.
 
 #### Remaining work strictly within Milestone 1
 
 | Registration work | Implementation remaining | Manual input or acceptance |
 | --- | --- | --- |
-| Agent access and owner consent | Production agent authentication/permissions, real consent records and trusted owner-verification hooks | Confirm staff authentication requirements and approved consent text. SMS/OTP implementation is Milestone 2. |
+| Agent access and owner consent — component implemented | Password/TOTP, current-session and role checks, production entrypoint, owner acceptance/withdrawal and trusted access receipts built | 018 is a prerequisite of installed/verified 019. Replace delegated placeholder legal facts and approve final wording before production. Apply 020 and private storage setup using docs/PRODUCTION-REGISTRATION-SETUP.md. SMS/OTP is Milestone 2. |
 | Registration evidence — implementation done | Android document/photo handling, PDF viewing, encrypted recovery and automated checks implemented | Phone acceptance remains at the end; approved evidence standards belong to the review task. |
-| Registration seals | Production issuance, authenticated QR identifiers, placement validation and physical inspection records | Confirm issuance rules, category-specific positions and who performs inspection. General stock administration/reconciliation is Milestone 3. |
-| Registration approval — implementation done | Independent TENANT_ADMIN reviewer access, corrections/replacements, approval, audit and trusted review confirmations implemented; actual seal confirmation comes from the seal task | Reviewer policy approved by the project owner. Apply 017; prepare separate reviewer account and test at final manual acceptance. General administration is Milestone 3. |
-| Registration payment | Payment contract, trusted confirmation, failure/retry handling and activation gate | Select provider and provide sandbox access for real integration. Subscriptions and expanded billing are Milestone 3. |
+| Registration seals — backend component implemented | Signed batch issuance, assigned IDs, SRS OTHER/approved-location validation, independent MFA inspection, revocation and atomic stock consumption built; 019 installed with all verification results true, reported by the project owner | Local test signing keys and a reserved placeholder origin are prepared; replace the origin before production. Manufacture/print actual labels and do final physical acceptance. Provisional locations cannot pass. Wizard/storage and administrator controls are connected; apply 020. [Guide](docs/PRODUCTION-REGISTRATION-SEALS.md). General stock administration/reconciliation is Milestone 3. |
+| Registration approval — implementation done | Independent TENANT_ADMIN reviewer access, corrections/replacements, approval, audit and trusted review confirmations implemented; actual seal confirmation comes from the seal task | Reviewer policy approved by the project owner. 017 is a prerequisite of installed/verified 019; prepare a separate reviewer account and test at final manual acceptance. General administration is Milestone 3. |
 | Submission and owner visibility — component done | Prerequisites, snapshot checks, duplicate protection, atomic vehicle/ownership/audit writes and owner reads implemented; remaining tasks must supply trusted confirmations | Migration 016 installed and verified; final signed-in browser/Android acceptance remains at the end. |
 
 Full offline startup, automatic durable sync and stock reconciliation are excluded
@@ -94,7 +96,7 @@ Connect SMS delivery and owner phone OTP verification deferred from Milestone 1,
 
 ### Milestone 3 — Add payments, subscriptions and pilot administration
 
-Integrate mobile money for registration, paid checks and subscription renewals, including confirmed callbacks, receipts, retries and reconciliation. Implement free-check allowances, subscription reminders, grace periods and suspension rules. Build basic administration for agents, organizations, enrollment approvals, seal stock, incidents and configuration. Complete encrypted offline agent drafts and safe synchronization. This milestone is achieved when payments control the correct operations and administrators can manage daily pilot activity. Build payment integration early enough to support paid registration in milestone 1 and paid checks in milestone 2; milestone 3 completes the remaining billing and administration work.
+Integrate mobile money for registration, paid checks and subscription renewals, including confirmed callbacks, receipts, retries and reconciliation. Implement free-check allowances, subscription reminders, grace periods and suspension rules. Build basic administration for agents, organizations, enrollment approvals, seal stock, incidents and configuration. Complete encrypted offline agent drafts and safe synchronization. This milestone is achieved when payments control the correct operations and administrators can manage daily pilot activity. All payment-provider integration belongs to Milestone 3, including registration and paid checks. Earlier milestone flows retain fail-closed payment gates until trusted provider confirmations exist.
 
 ### Milestone 4 — Make the app ready for the Kinshasa pilot
 
@@ -108,8 +110,11 @@ Finish French and English coverage, verify security controls and audit logging a
 - [ ] Install migration 016 once and run the updated read-only verifier; follow [SQL Editor instructions](docs/ENROLLMENT-SUBMISSION.md).
 - [ ] Check signed-in sample evidence reviews, draft/owner invalidation and bilingual layouts.
 - [ ] Resume Android and signed-in browser acceptance of the existing wizard; fix reproduced issues.
-- [ ] Confirm category-specific seal positions, production seal issuance and evidence-review requirements.
-- [ ] Confirm authority review/approval rules and production agent authentication requirements.
+- [x] Implement the registration seal backend from SRS rules and delegated defaults: signed issuance, actual-location/inspection checks, revocation and atomic consumption. Backend: 56 tests passed.
+- [x] Apply 019: project owner reports every hosted verification result true. Do not replay it.
+- [ ] Configure actual seal signing origin/key ring; complete production wizard/storage wiring and final physical acceptance. [Instructions](docs/PRODUCTION-REGISTRATION-SEALS.md).
+- [x] Resolve authority review and staff factor choices: independent TENANT_ADMIN and password/TOTP.
+- [ ] Publish real registration consent after supplying organization/authority/contact/retention details; apply 018.
 - [ ] Select SMS/USSD and mobile-money providers and obtain sandbox access; arrange the USSD code.
 - [ ] Implement milestone 1 through the database, API and mobile app, with tests for duplicates, permissions, retries and prerequisite failures.
 

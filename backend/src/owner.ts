@@ -1,3 +1,4 @@
+import {setRequestIdentity} from './requestIdentity';
 import { BadRequestException, ConflictException, ForbiddenException, NotFoundException, ServiceUnavailableException, UnprocessableEntityException } from '@nestjs/common';
 import { createCipheriv, createDecipheriv, createHmac, hkdfSync, randomBytes } from 'node:crypto';
 import { Pool } from 'pg';
@@ -44,7 +45,7 @@ export function ownerConsentInput(value: unknown) {
 }
 type Snapshot = { draftId: string; draftRevision: number; ownerProfileId: string; ownerGeneration: number;
   ciphertext: string | null; savedAt: string | null; documents: unknown[]; consent: unknown;
-  sampleOnly: true; phoneVerified: false; productionConsentVerified: false };
+  mode?: 'DEVELOPMENT' | 'PRODUCTION'; sampleOnly: boolean; phoneVerified: false; productionConsentVerified: boolean };
 export function ownerCipher(master: Buffer) {
   if (master.length !== 32) throw new Error('Owner encryption requires a 32-byte master key.');
   // Separate encryption and keyed request fingerprints from the evidence key/domain.
@@ -82,7 +83,7 @@ export class PostgresOwnerStore {
     const client = await this.pool.connect();
     try {
       await client.query('begin'); await client.query('set local role autoguardian_enrollment_api');
-      await client.query("select set_config('autoguardian.tenant_id',$1,true),set_config('autoguardian.auth_user_id',$2,true)", [this.tenantId, actor]);
+      await setRequestIdentity(client,this.tenantId,actor);
       const access = await client.query('select private.enrollment_agent_id(null) as actor');
       if (!access.rows[0].actor) throw new ForbiddenException({ code: 'AGENT_ACCESS_REQUIRED' });
       const result = await client.query(`select private.${name}(${args.map((_, i) => '$' + (i + 1)).join(',')}) as result`, args);
@@ -100,16 +101,19 @@ export class PostgresOwnerStore {
   }
 }
 export class OwnerService {
-  constructor(private readonly store: PostgresOwnerStore, private readonly cipher?: ReturnType<typeof ownerCipher>) {}
+  constructor(private readonly store: PostgresOwnerStore, private readonly cipher?: ReturnType<typeof ownerCipher>,private readonly mode?:'DEVELOPMENT'|'PRODUCTION') {}
   private context(row: Snapshot) { return [this.store.tenantId.toLowerCase(), row.draftId, row.ownerProfileId, row.ownerGeneration]; }
   private present(row: Snapshot) {
     if (!this.cipher) throw unavailable();
+    if(this.mode && (row.mode??'DEVELOPMENT')!==this.mode) throw unavailable();
     const { ciphertext, ...safe } = row;
     return { ...safe, details: ciphertext ? this.cipher.decrypt(ciphertext, this.context(row)) : null };
   }
   async read(actor: string, id: string) { return this.present(await this.store.read(actor, id)); }
   async save(actor: string, id: string, key: string, body: unknown) {
     const input = ownerSaveInput(body), row = await this.store.read(actor, id);
+    if(this.mode && (row.mode??'DEVELOPMENT')!==this.mode) throw unavailable();
+    if(row.mode==='PRODUCTION' && input.details.type!=='INDIVIDUAL') throw new UnprocessableEntityException({code:'OWNER_REPRESENTATION_REQUIRED'});
     if (!this.cipher) throw unavailable();
     const ciphertext = this.cipher.encrypt(input.details, this.context({ ...row, ownerGeneration: row.ownerGeneration + 1 }));
     return this.present(await this.store.save(actor, id, key, input.expectedDraftRevision,
@@ -117,11 +121,15 @@ export class OwnerService {
   }
   async consent(actor: string, id: string, key: string, body: unknown) {
     const input = ownerConsentInput(body), current = this.present(await this.store.read(actor, id));
+    if(current.mode==='PRODUCTION') throw new ForbiddenException({code:'DIRECT_OWNER_CONSENT_REQUIRED'});
     if (!current.details || current.details.preferredLanguage !== input.language) throw new ConflictException({ code: 'OWNER_CONFLICT' });
     return this.present(await this.store.consent(actor, id, key, input, this.cipher!.digest([this.store.tenantId, id, key, input])));
   }
 }
 export function configuredOwner(env: NodeJS.ProcessEnv, store: PostgresOwnerStore, development: boolean) {
-  const key = env.ENROLLMENT_EVIDENCE_KEY_HEX;
-  return new OwnerService(store, development && key && /^[0-9a-f]{64}$/i.test(key) ? ownerCipher(Buffer.from(key, 'hex')) : undefined);
+  const key = development?env.ENROLLMENT_EVIDENCE_KEY_HEX:env.PRODUCTION_OWNER_KEY_HEX;
+  if(key && !/^[0-9a-f]{64}$/i.test(key)) throw new Error('Configure a valid 32-byte owner encryption key.');
+  if(!development && key && [env.ENROLLMENT_EVIDENCE_KEY_HEX,env.PRODUCTION_EVIDENCE_KEY_HEX].some(other=>other?.toLowerCase()===key.toLowerCase()))
+    throw new Error('Production owner details require an independent encryption key.');
+  return new OwnerService(store, key ? ownerCipher(Buffer.from(key, 'hex')) : undefined,development?'DEVELOPMENT':'PRODUCTION');
 }

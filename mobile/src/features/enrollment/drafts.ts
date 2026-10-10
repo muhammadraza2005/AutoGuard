@@ -10,13 +10,16 @@ export const draftVehicleSchema = z.object({
 export const draftBodySchema = z.object({organizationId:z.uuid(),ownerProfileId:z.uuid(),vehicle:draftVehicleSchema});
 export const enrollmentDraftSchema = draftBodySchema.extend({
   id:z.uuid(),status:z.literal('DRAFT'),revision:z.number().int().positive(),
+  mode:z.enum(['DEVELOPMENT','PRODUCTION']).optional().default('DEVELOPMENT'),
   createdAt:z.iso.datetime({offset:true}),updatedAt:z.iso.datetime({offset:true}),
 });
 export type EnrollmentDraft = z.infer<typeof enrollmentDraftSchema>;
 export type EnrollmentDraftBody = z.infer<typeof draftBodySchema>;
 type Request = (path:string,options:{method?:'POST'|'PUT';body?:unknown;idempotencyKey?:string;signal?:AbortSignal})=>Promise<unknown>;
-export const ownerOptionSchema = z.object({profileId:z.uuid(),label:z.string().regex(/^Development owner [1-9][0-9]{0,3}$/),
-  verificationStatus:z.literal('NOT_VERIFIED')});
+export const ownerOptionSchema = z.discriminatedUnion('verificationStatus',[
+  z.object({profileId:z.uuid(),label:z.string().regex(/^Development owner [1-9][0-9]{0,3}$/),verificationStatus:z.literal('NOT_VERIFIED')}),
+  z.object({profileId:z.uuid(),label:z.string().trim().min(1).max(100).refine(v=>!/[\x00-\x1f\x7f]/.test(v)),verificationStatus:z.literal('PHONE_PENDING')}),
+]);
 export async function readOwnerOptions(request:Request,organizationId:string,signal?:AbortSignal) {
   const result=z.object({items:z.array(ownerOptionSchema).max(50)})
     .parse(await request('/v1/enrollment-drafts/owner-options?organizationId='+z.uuid().parse(organizationId),{signal}));

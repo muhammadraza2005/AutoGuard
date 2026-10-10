@@ -13,10 +13,14 @@ import { wizardEn, wizardFr } from './wizardResources';
 import { pdfEvidenceEn, pdfEvidenceFr } from './pdfEvidenceResources';
 import { submissionEn, submissionFr } from './submissionResources';
 import { registrationReviewEn, registrationReviewFr } from './registrationReviewResources';
+import {accessSecurityEn,accessSecurityFr,ownerConsentEn,ownerConsentFr} from './accessConsentResources';
+import {registrationIntegrationEn,registrationIntegrationFr} from './registrationIntegrationResources';
 export const resources = {
   en: {
     translation: {
       stitch: stitchEn,
+      accessSecurity:accessSecurityEn,ownerConsent:ownerConsentEn,
+      registrationIntegration:registrationIntegrationEn,
       pdfEvidence: pdfEvidenceEn,
       registrationSubmission: submissionEn,
       registrationReview: registrationReviewEn,
@@ -76,6 +80,8 @@ export const resources = {
   fr: {
     translation: {
       stitch: stitchFr,
+      accessSecurity:accessSecurityFr,ownerConsent:ownerConsentFr,
+      registrationIntegration:registrationIntegrationFr,
       pdfEvidence: pdfEvidenceFr,
       registrationSubmission: submissionFr,
       registrationReview: registrationReviewFr,

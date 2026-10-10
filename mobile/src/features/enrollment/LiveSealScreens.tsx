@@ -22,6 +22,7 @@ import {WorkingCopyStatus} from './WorkingCopyStatus';
 import { colors } from '@/theme/tokens';
 import { SealLocationPanel } from './SealLocationPanel';
 import { enrollmentRoute } from './wizard';
+import {verifySealQr} from './productionSeals';
 
 function SealPage({children}:{children:React.ReactNode}){
   const {t}=useTranslation();const router=useRouter();
@@ -43,7 +44,7 @@ export function DevelopmentSealStock({embedded=false}:{embedded?:boolean}={}){
     queryFn:({pageParam,signal})=>readSealStock(request,organization,pageParam,signal),getNextPageParam:page=>page.nextCursor??undefined,
     enabled:Boolean(profile && allowed),gcTime:0,retry:false,networkMode:'always',refetchOnWindowFocus:false});
   const items=!query.isError?query.data?.pages.flatMap(page=>page.items)??[]:[];
-  const content=<><Heading>{t('liveSeals.stock')}</Heading><Notice tone="warning">{t('liveSeals.notice')}</Notice>
+  const content=<><Heading>{t('liveSeals.stock')}</Heading><Notice tone="warning">{t(query.data?.pages[0]?.mode==='PRODUCTION'?'registrationIntegration.sealsNotice':'liveSeals.notice')}</Notice>
     {organizations.length>1 && <Card><Label>{t('liveSeals.organization')}</Label>{organizations.map(org=><Action key={org} secondary={org!==organization}
       label={t('enrollmentWizard.organization',{number:organizations.indexOf(org)+1})} onPress={()=>setOrganization(org)}/>)}</Card>}
     {!allowed && <Notice tone="danger">{t('liveSeals.denied')}</Notice>}
@@ -74,13 +75,13 @@ export function EnrollmentSealFitting({embedded=false,onSaved,onBusyChange,onDir
   const evidence=useQuery({queryKey:['enrollment-evidence',profile?.tenantId,profile?.id,safeId],queryFn:({signal})=>listEvidence(request,safeId!,signal),
     enabled:Boolean(profile && safeId && fitting.data && !fitting.isError),gcTime:0,retry:false,networkMode:'always',refetchOnWindowFocus:false});
   const loading=draft.isFetching || fitting.isFetching;const error=draft.error??fitting.error;
-  const content=<><Heading>{t('liveSeals.title')}</Heading><Notice tone="warning">{t('liveSeals.notice')}</Notice>
+  const content=<><Heading>{t('liveSeals.title')}</Heading><Notice tone="warning">{t(fitting.data?.mode==='PRODUCTION'?'registrationIntegration.sealsNotice':'liveSeals.notice')}</Notice>
     {!safeId && <Notice tone="danger">{t('liveSeals.unavailable')}</Notice>}
     {Boolean(safeId) && loading && <Copy>{t('liveSeals.loading')}</Copy>}
     {Boolean(safeId) && !loading && Boolean(error) && <SealError error={error}/>}
     {safeId && !loading && !error && draft.data && fitting.data && <>
       <Heading>{draft.data.vehicle.plate??draft.data.vehicle.chassisIdentifier}</Heading>
-      <Copy>{t('liveSeals.codeExplanation')}</Copy>
+      <Copy>{t(fitting.data.mode==='PRODUCTION'?'registrationIntegration.codeHint':'liveSeals.codeExplanation')}</Copy>
       <Action secondary label={t('liveSeals.stock')} icon="cube-outline" disabled={editorBusy} onPress={()=>router.navigate({pathname:'/agent/seal-stock',params:{organizationId:draft.data.organizationId}})}/>
       <FittingEditor key={fitting.dataUpdatedAt} fitting={fitting.data} organizationId={draft.data.organizationId}
         onSaved={result=>onSaved?.(result)} onBusyChange={setEditorBusy} onDirtyChange={setEditorDirty} disabled={locationBusy || locationDirty}
@@ -201,7 +202,7 @@ function FittingEditor({fitting,photos,organizationId,onSaved,onBusyChange,onDir
         <Label>{t('liveSeals.code')}</Label><Copy>{t('liveSeals.codeHint')}</Copy>
         <Copy selectable>{slot.sealCode||t('liveSeals.noSeal')}</Copy>
         <Action secondary icon="qr-code-outline" label={t('liveSeals.scanner.open')} disabled={locked} onPress={()=>setCodeEntry(slot.position)}/>
-        {codeEntry===slot.position && <SealCodeEntry onClose={()=>setCodeEntry(null)} onUse={async code=>{
+        {codeEntry===slot.position && <SealCodeEntry resolveQr={fitting.mode==='PRODUCTION'?raw=>verifySealQr(request,raw):undefined} onClose={()=>setCodeEntry(null)} onUse={async code=>{
           const candidate=sealValidationBodySchema.parse({...body,placements:slots.map(s=>s.position===slot.position
             ?{...s,sealCode:code,photoId:s.sealCode===code?s.photoId:null}:s).filter(s=>s.sealCode.trim())});
           const value=await validateSealFitting(request,fitting.draftId,candidate);

@@ -31,6 +31,10 @@ export default function LiveAccount({embedded=false}:{embedded?:boolean}={}) {
         <Action secondary label={t('enrollmentWizard.list')} icon="document-text-outline" onPress={()=>router.navigate('/agent')} />}
       {profile.roles.some(role=>role.code==='TENANT_ADMIN'&&role.organizationId===null)&&
         <Action secondary label={t('registrationReview.title')} icon="document-text-outline" onPress={()=>router.push('/registration-reviews')}/>}
+      {profile.roles.some(role=>['ENROLLMENT_AGENT','TENANT_ADMIN'].includes(role.code))&&
+        <Action secondary label={t('accessSecurity.title')} icon="lock-closed-outline" onPress={()=>router.push('/staff-security')}/>}
+      {profile.roles.some(role=>role.code==='OWNER'&&role.organizationId===null)&&
+        <Action secondary label={t('ownerConsent.title')} icon="document-text-outline" onPress={()=>router.push('/registration-consents')}/>}
       <Action secondary label={t('devAuth.refresh')} onPress={refreshProfile} /></>}
     {signOutError && <Notice tone="danger">{t('devAuth.signOutError')}</Notice>}
     <Action secondary label={t('devAuth.signOut')} onPress={() => void leave()} />

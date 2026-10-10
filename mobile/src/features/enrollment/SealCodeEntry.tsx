@@ -7,7 +7,7 @@ import {Action,Copy,Label,Notice,stitchStyles} from '@/components/ui/Stitch';
 import {ApiError} from '@/services/api/client';
 import {parseFittingCode,type SealIssue} from './sealValidation';
 
-export function SealCodeEntry({onUse,onClose}:{onUse:(code:string)=>Promise<SealIssue[]>;onClose:()=>void}) {
+export function SealCodeEntry({onUse,onClose,resolveQr}:{onUse:(code:string)=>Promise<SealIssue[]>;onClose:()=>void;resolveQr?:(raw:string)=>Promise<string>}) {
   const {t}=useTranslation();const [permission,requestPermission]=useCameraPermissions();
   const [code,setCode]=useState(''),[camera,setCamera]=useState(false),[busy,setBusy]=useState(false);
   const [problem,setProblem]=useState<string|null>(null),[issues,setIssues]=useState<SealIssue[]>([]);
@@ -33,23 +33,23 @@ export function SealCodeEntry({onUse,onClose}:{onUse:(code:string)=>Promise<Seal
   function scan(raw:string){
     if(scanned.current)return;scanned.current=true;stop();
     const value=parseFittingCode(raw);setIssues([]);
-    if(value){setCode(value);setProblem(null);}else setProblem('invalidCode');
+    if(value){setCode(value);setProblem(null);}else if(resolveQr&&/^https:\/\//.test(raw)&&raw.length<=512){setCode(raw);setProblem(null);}else setProblem('invalidCode');
   }
   async function confirmCode(){
     if(checking.current)return;
     const value=parseFittingCode(code);setIssues([]);setProblem(null);
-    if(!value){setProblem('invalidCode');return;}
+    if(!value&&!(resolveQr&&/^https:\/\//.test(code)&&code.length<=512)){setProblem('invalidCode');return;}
     checking.current=true;setBusy(true);stop();
-    try {const result=await onUse(value);if(active.current)setIssues(result);}
+    try {const checked=value??await resolveQr!(code);if(!active.current)return;const result=await onUse(checked);if(active.current)setIssues(result);}
     catch(error){if(active.current)setProblem(error instanceof ApiError && error.status===409?'conflict'
       :error instanceof ApiError && error.status===503?'setup':'failed');}
     finally {checking.current=false;if(active.current)setBusy(false);}
   }
   return <View style={{gap:12}}>
     <Label>{t('liveSeals.scanner.title')}</Label>
-    <Copy>{t('liveSeals.scanner.hint')}</Copy>
-    <TextInput accessibilityLabel={t('liveSeals.code')} value={code} style={stitchStyles.input} maxLength={50}
-      autoCapitalize="characters" autoCorrect={false} editable={!busy} placeholder="DEV-SEAL-STD-001"
+    <Copy>{t(resolveQr?'registrationIntegration.codeHint':'liveSeals.scanner.hint')}</Copy>
+    <TextInput accessibilityLabel={t('liveSeals.code')} value={code} style={stitchStyles.input} maxLength={resolveQr?512:50}
+      autoCapitalize={resolveQr?'none':'characters'} autoCorrect={false} editable={!busy} placeholder={resolveQr?'AG…':'DEV-SEAL-STD-001'}
       onChangeText={value=>{setCode(value);setIssues([]);setProblem(null);}}/>
     <Action secondary icon="qr-code-outline" label={t('liveSeals.scanner.scan')} disabled={busy} onPress={()=>void openCamera()}/>
     {camera && <>

@@ -14,10 +14,11 @@ async function foundation() {
   const db=new PGlite();
   await db.exec(`create role anon;create role authenticated;create role service_role bypassrls;
     create role autoguardian_identity_login nologin;
-    create schema auth;create table auth.users(id uuid primary key);`);
-  for (const f of ['202610050001_core_foundation.sql','202610050002_default_permissions.sql',
-    '202610050003_identity_api.sql','202610060004_owned_vehicle_reads.sql','202610060005_enrollment_drafts.sql',
-    '202610060006_development_owner_selection.sql','202610060007_enrollment_attachments.sql']) {
+    create schema auth;create table auth.users(id uuid primary key);
+    create table auth.sessions(id uuid primary key,user_id uuid,aal text,factor_id uuid,not_after timestamptz);
+    create table auth.mfa_factors(id uuid primary key,user_id uuid,factor_type text,status text);
+    create table auth.mfa_amr_claims(session_id uuid,authentication_method text,updated_at timestamptz);`);
+  for (const f of (await fs.readdir(path.resolve(__dirname,'../../supabase/migrations'))).filter(v=>v.endsWith('.sql')).sort()) {
     await db.exec(await fs.readFile(path.resolve(__dirname,'../../supabase/migrations',f),'utf8'));
   }
   await db.exec(`insert into auth.users values ('${id(1)}'),('${id(2)}'),('${id(3)}');

@@ -1,3 +1,4 @@
+import {setRequestIdentity} from './requestIdentity';
 import { BadRequestException, ConflictException, ForbiddenException, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
 import { Pool } from 'pg';
 import { EvidenceService } from './evidence';
@@ -38,7 +39,7 @@ export class PostgresRegistrationReviewStore {
     try {
       await client.query('begin isolation level serializable');
       await client.query('set local role autoguardian_enrollment_api');
-      await client.query("select set_config('autoguardian.tenant_id',$1,true),set_config('autoguardian.auth_user_id',$2,true)",[this.tenantId,actor]);
+      await setRequestIdentity(client,this.tenantId,actor);
       const result = await client.query(`select private.registration_review_${action}(${args.map((_,i)=>'$'+(i+1)).join(',')}) as result`,args);
       await client.query('commit'); return result.rows[0].result;
     } catch (error) {

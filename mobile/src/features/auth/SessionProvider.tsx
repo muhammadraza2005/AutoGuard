@@ -137,7 +137,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
       sectionGrants: section === 'consumer' ? ['consumer'] : ['consumer', section] });
   }
   async function signInWithEmail(email: string, password: string) {
-    if (!runtime.developmentEmailAuth) throw new Error('Development email login is disabled.');
+    if (runtime.isDemo) throw new Error('Live email login is disabled in preview.');
     const { error: authError } = await getSupabaseClient().auth.signInWithPassword({ email: email.trim(), password });
     if (authError) throw new Error('Email sign-in failed.');
   }

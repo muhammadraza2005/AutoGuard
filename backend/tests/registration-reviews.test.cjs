@@ -4,11 +4,13 @@ const {PostgresRegistrationReviewStore,RegistrationReviewService,registrationRev
 const {PostgresEnrollmentStore,draftInput}=require('../dist/enrollments');
 const {PostgresSubmissionStore}=require('../dist/submission');const {createApp}=require('../dist/app');
 const {UnauthorizedException}=require('@nestjs/common');
+const {identityRequest,rememberVerifiedSession}=require('../dist/requestIdentity');
+const {ProductionSealService,PostgresProductionSealStore}=require('../dist/productionSeals');
 const id=n=>`00000000-0000-4000-8000-${String(n).padStart(12,'0')}`;
 const tenant='ce31527e-d1b5-4379-9ddd-1458cfb73431',agent='369cbe75-32c8-40b4-a9ee-f2d9bde379db',org='014db61a-4c68-48cb-86b6-46837f4da873';
 async function foundation(){
  const db=new PGlite();await db.exec(`create role anon;create role authenticated;create role service_role bypassrls;
- create role autoguardian_identity_login nologin;create schema auth;create table auth.users(id uuid primary key);`);
+ create role autoguardian_identity_login nologin;create schema auth;create table auth.users(id uuid primary key);create table auth.sessions(id uuid primary key,user_id uuid,aal text,factor_id uuid,not_after timestamptz); create table auth.mfa_factors(id uuid primary key,user_id uuid,factor_type text,status text); create table auth.mfa_amr_claims(session_id uuid,authentication_method text,updated_at timestamptz);`);
  for(const file of (await fs.readdir(path.resolve(__dirname,'../../supabase/migrations'))).filter(f=>f.endsWith('.sql')).sort())
   await db.exec(await fs.readFile(path.resolve(__dirname,'../../supabase/migrations',file),'utf8'));
  await db.exec(`insert into auth.users values('${id(1)}'),('${id(2)}'),('${id(3)}');
@@ -80,7 +82,15 @@ test('approval requires all evidence and trusted seals; only production receives
   await f.seals();s=await f.change('APPROVED');assert.equal(s.productionApproved,false);
   assert.equal((await f.db.query("select count(*)::integer n from private.enrollment_prerequisite_receipts where code in ('PRODUCTION_EVIDENCE','REVIEW_POLICY')")).rows[0].n,0);
   await f.context();await f.db.query("update app.enrollment_drafts set enrollment_mode='PRODUCTION' where id=$1",[f.draft.id]);
-  s=await f.change('APPROVED');assert.equal(s.productionApproved,true);
+  // Production no longer accepts the synthetic development SEALS receipt.
+  await f.db.exec(`insert into auth.mfa_factors values('${id(52)}','${id(2)}','totp','verified');
+    insert into auth.sessions values('${id(62)}','${id(2)}','aal2','${id(52)}',now()+interval '1 hour');
+    insert into auth.mfa_amr_claims values('${id(62)}','password',now()),('${id(62)}','totp',now());`);
+  const staff=call=>new Promise((resolve,reject)=>identityRequest(()=>{rememberVerifiedSession({authUserId:id(2),sessionId:id(62),expiresAt:Date.now()/1000+300,staff:true});Promise.resolve().then(call).then(resolve,reject);}));
+  const physical=new ProductionSealService(new PostgresProductionSealStore(f.pool,tenant));
+  const sealState=await staff(()=>physical.read(id(2),f.draft.id));
+  await staff(()=>physical.inspect(id(2),f.draft.id,id(950),{expectedDraftRevision:sealState.draftRevision,expectedSnapshotRevision:sealState.snapshotRevision,expectedInspectionRevision:0,action:'APPROVE',placements:[]}));
+  s=await staff(()=>f.change('APPROVED'));assert.equal(s.productionApproved,true);
   const receipts=(await f.db.query("select code,accepted,trusted_reference,expires_at from private.enrollment_prerequisite_receipts where code in ('PRODUCTION_EVIDENCE','REVIEW_POLICY')")).rows;
   assert.equal(receipts.length,2);assert.ok(receipts.every(r=>r.accepted&&r.trusted_reference.startsWith('REVIEW:')));
   const submission=new PostgresSubmissionStore(f.pool,tenant);assert.ok((await submission.read(id(1),f.draft.id)).checks.filter(c=>['PRODUCTION_EVIDENCE','REVIEW_POLICY'].includes(c.code)).every(c=>c.status==='COMPLETE'));

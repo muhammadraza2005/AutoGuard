@@ -26,6 +26,8 @@ export default function RootLayout() {
         <Stack.Screen name="administration" options={{ headerShown: false }} />
         <Stack.Screen name="welcome" options={{ headerShown: false }} />
         <Stack.Screen name="live-account" options={{ headerShown: false }} />
+        <Stack.Screen name="staff-security" options={{ headerShown: false }} />
+        <Stack.Screen name="registration-consents" options={{ headerShown: false }} />
         <Stack.Screen name="live-vehicles" options={{ headerShown: false }} />
         <Stack.Screen name="live-enrollments" options={{ headerShown: false }} />
         <Stack.Screen name="permission-denied" options={{ title: 'AutoGuardian' }} />

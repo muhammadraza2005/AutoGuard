@@ -86,6 +86,14 @@ Owner PIN is a separate application credential, stored only as a salted adaptive
 
 ### Professional and institutional access
 
+**Milestone 1 decision, 10 October 2026:** the project owner delegated a secure
+choice and authorized continuing. Registration agents and independent TENANT_ADMIN
+reviewers now use password plus authenticator TOTP with one-hour proof expiry and
+live session/factor checks. This resolves the staff-factor choice for registration
+only; other role requirements below are unchanged. Owner SMS/phone OTP remains
+Milestone 2 and still gates activation. See
+[implementation and setup](docs/AGENT-ACCESS-CONSENT.md).
+
 Enforce the role-specific authentication table: professional password + OTP; agent password + OTP; other institutional roles require two factors; platform admins also require an IP allow-list. SRS section 13 states SMS OTP for everyone, while some role entries say only “2 factors”; the exact factor combinations need D04 resolution. TOTP is a possible lower-cost second factor where the client agrees, not an assumed replacement for the specified agent/password/SMS flow. Supabase phone MFA is distinct from primary phone OTP and is not included on the Free plan. [MFA documentation](https://supabase.com/docs/guides/auth/auth-mfa/phone), [Supabase pricing](https://supabase.com/pricing).
 
 Treat institutional client credentials as separate technical accounts scoped to tenant, organization and mission. Supabase's documented OAuth server does not support `client_credentials`; select a maintained OAuth authorization-server solution supporting that grant or a reviewed implementation before building this integration. Never give partners Supabase service keys as API credentials. [Supported OAuth flows](https://supabase.com/docs/guides/auth/oauth-server/oauth-flows).
@@ -158,6 +166,14 @@ Do not invent direct FOR_SALE-to-AGENT_SALE transitions; reconcile the mandate f
 Require permitted initiator, active mandate if applicable, buyer OTP acceptance, agent/registry identity validation and final seller PIN confirmation. Where a lock applies, verify the operation-bound clearance. In one transaction, close the old ownership, create the new ownership, reset sale status to NOT_FOR_SALE, audit the change and invalidate former-owner permissions/sessions or projections. Keep history without exposing former-owner personal history to the new owner. Confirm mandate/backup relationship invalidation rules in D09 before coding.
 
 ### Seals F7 F8
+
+Milestone-one registration seal backend is implemented in migration 019 and
+`backend/src/productionSeals.ts`: signed batch issuance, independent MFA inspection,
+SRS OTHER with actual comments, unapproved preset rejection, revocation and atomic
+stock consumption. Inspection writes only SEALS; review/finalization recheck it.
+See [setup and boundaries](docs/PRODUCTION-REGISTRATION-SEALS.md). Production wizard/
+encrypted storage integration and physical acceptance remain separate; general
+stock management and consumer/institutional seal checks retain their later scope.
 
 Generate a short verification URL containing an opaque seal identifier and versioned HMAC signature; no owner or vehicle data in the QR. Keep the signing secret server-side. Manual identifiers remain available on basic phones. Validate stock/assignment and atomic placement uniqueness.
 

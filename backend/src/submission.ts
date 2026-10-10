@@ -1,3 +1,4 @@
+import {setRequestIdentity,hasVerifiedStaffSession} from './requestIdentity';
 import { BadRequestException, ConflictException, ForbiddenException, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
 import { Pool } from 'pg';
 
@@ -26,9 +27,10 @@ export class PostgresSubmissionStore implements SubmissionStore {
     try {
       await client.query('begin isolation level serializable');
       await client.query('set local role autoguardian_enrollment_api');
-      await client.query("select set_config('autoguardian.tenant_id',$1,true),set_config('autoguardian.auth_user_id',$2,true)", [this.tenantId, actor]);
+      await setRequestIdentity(client,this.tenantId,actor);
       const allowed = await client.query('select private.enrollment_agent_id(null) as actor');
       if (!allowed.rows[0].actor) throw new ForbiddenException({ code: 'AGENT_ACCESS_REQUIRED' });
+      if(hasVerifiedStaffSession())await client.query('select private.refresh_registration_access($1)',[draftId]);
       const result = await client.query(change
         ? `select private.enrollment_${change.action}($1,$2,$3,$4) as result`
         : 'select private.enrollment_submission_status($1) as result', change ? [draftId, change.key, change.revision, change.snapshot] : [draftId]);

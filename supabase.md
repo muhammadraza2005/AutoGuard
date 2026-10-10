@@ -18,6 +18,15 @@ The official pricing page currently lists 500 MB database storage, 1 GB file sto
 
 Primary phone OTP and phone second-factor MFA are different. Phone MFA is a paid feature; role-specific password/OTP and institutional two-factor requirements need an approved implementation. The source's SMS-for-everyone wording cannot be silently replaced with a cheaper factor. Session expiry and remote revocation may also require backend controls when native plan features are unavailable. See D04 and D12.
 
+Milestone 1 decision on 10 October 2026: under the project owner's delegated
+security choice, registration agents/reviewers use password plus authenticator
+TOTP with one-hour proof expiry. Migration 018 checks the current managed Auth
+session through a Boolean-only administrative gateway, keeps private domain
+operations under forced RLS, and records direct owner-account consent. SMS/owner
+phone verification remains Milestone 2. Real wording still needs actual operator,
+authority, privacy contact and approved retention facts. See
+[setup and limits](docs/AGENT-ACCESS-CONSENT.md).
+
 Proposed environments are local development, isolated staging and production. Local development can use the Supabase CLI and a local container runtime after setup. Cloud staging/production need separate projects, keys, buckets and provider credentials; Free project limits do not remove the requirement for environment separation.
 
 Choose the production region only after authority data-localization requirements are known. A hosted region selection alone is not proof of legal compliance. Self-hosting or another deployment arrangement may be necessary if hosted regions cannot satisfy the authority; do not promise a DRC location without verifying one. [Region documentation](https://supabase.com/docs/guides/platform/regions).
@@ -271,5 +280,13 @@ Use SQL/integration tests for actual integrity and policy behavior, not tests th
 Run query/load tests at the source's initial capacity and monitor actual database/storage/egress/auth growth before selecting production resources. The presence of Supabase tables alone is not acceptance of the application.
 
 ## 14. Cross-file ownership
+
+Registration seal migration 019 retains the legacy private stock table name for
+fitting compatibility, with explicit DEVELOPMENT/PRODUCTION origin enforcement.
+Immutable production batches, identifiers, inspections, revocations and confidential
+read events are separate forced-RLS records; existing sample stock is never promoted.
+A restricted NOLOGIN executor exposes narrow APIs. Finalization consumes production
+stock atomically, and terminal statuses cannot reactivate. Apply after 018; follow
+[the seal setup guide](docs/PRODUCTION-REGISTRATION-SEALS.md) and its read-only verifier.
 
 `frontend.md` owns the Stitch brief, screen states, localization presentation and React Native setup checklist. `backend.md` owns business rules, APIs, workers/provider behavior, milestones and the shared decision register. This file owns proposed schema/auth/storage boundaries, data integrity, policies, migrations and recovery. Keep all three consistent when a decision changes.

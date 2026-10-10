@@ -18,6 +18,7 @@ import EnrollmentReviewScreen from './EnrollmentReviewScreen';
 import { enrollmentRoute, enrollmentSteps, savedWizardSteps, wizardParams, type EnrollmentStep } from './wizard';
 import { profileScope } from '@/features/auth/authEvents';
 import { workingCopies } from './workingCopies';
+import {runtime} from '@/config/runtime';
 
 export default function EnrollmentWizardScreen() {
   const { t } = useTranslation(); const router = useRouter(); const { profile, request } = useSession();
@@ -37,7 +38,7 @@ export default function EnrollmentWizardScreen() {
   useFocusEffect(useCallback(()=>{
     if(hasProfile && id && !invalid && !form.current.busy && !form.current.dirty){void refreshDraft();void refreshReadiness();}
   },[hasProfile,id,invalid,refreshDraft,refreshReadiness]));
-  const saved=readiness.data && !readiness.isFetching && !readiness.isError?savedWizardSteps(readiness.data.checks):undefined;
+  const saved=readiness.data && !readiness.isFetching && !readiness.isError?savedWizardSteps(readiness.data.checks,readiness.data.mode):undefined;
   const index=enrollmentSteps.indexOf(step);
   const loading=Boolean(id && (draft.isPending || draft.isFetching));
   const available=!invalid && (!id || Boolean(draft.data && !draft.isError && !loading));
@@ -49,7 +50,7 @@ export default function EnrollmentWizardScreen() {
   }
   const vehicle=draft.data?.vehicle;
   return <StitchPage>
-    <Notice tone="warning">{t('enrollmentWizard.notice')}</Notice>
+    <Notice tone="warning">{t(draft.data?.mode==='PRODUCTION'||!runtime.developmentEmailAuth?'registrationIntegration.notice':'enrollmentWizard.notice')}</Notice>
     <View style={{gap:8}}>
       <Label>{t('enrollmentWizard.step',{number:index+1,total:enrollmentSteps.length,title:t('enrollmentWizard.steps.'+step)})}</Label>
       <View style={{flexDirection:'row',gap:5}}>{enrollmentSteps.map((value,i)=>{

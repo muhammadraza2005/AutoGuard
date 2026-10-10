@@ -100,7 +100,7 @@ export function EvidencePanel({draftId,kinds=[...documentEvidenceKinds,'SEAL_FIT
       }
       const text=atob(file.dataBase64);const bytes=Uint8Array.from(text,c=>c.charCodeAt(0));
       const url=URL.createObjectURL(new Blob([bytes],{type:file.mimeType}));
-      const link=document.createElement('a');link.href=url;link.download='sample-evidence.'+(file.mimeType==='application/pdf'?'pdf':file.mimeType==='image/png'?'png':'jpg');
+      const link=document.createElement('a');link.href=url;link.download='registration-evidence.'+(file.mimeType==='application/pdf'?'pdf':file.mimeType==='image/png'?'png':'jpg');
       link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
     } catch {if(mounted.current)setError(true);} finally {inFlight.current=false;if(mounted.current)setBusy(false);}
   }
@@ -108,12 +108,12 @@ export function EvidencePanel({draftId,kinds=[...documentEvidenceKinds,'SEAL_FIT
   const enabled=Boolean(data?.uploadsEnabled) && !restoring && !recoveryUnavailable && (Platform.OS==='web' || Boolean(data?.nativeUploadContext));
   const showChecklist=!compact && kinds.some(kind=>(documentEvidenceKinds as readonly string[]).includes(kind));
   const uploadAction=(kind:EvidenceKind)=><Card key={kind}><Action icon="cloud-upload-outline"
-    label={uploadLabel??t('liveEvidence.add.'+kind)} disabled={disabled || busy || uncertain || !enabled || (data?.items.length??0)>=30} onPress={()=>void pick(kind)}/>
-    {Platform.OS!=='web' && <Action secondary icon="camera-outline" label={t('liveEvidence.capture',{kind:t('liveEvidence.kinds.'+kind)})}
+    label={uploadLabel??t(data?.mode==='PRODUCTION'?'registrationIntegration.addEvidence':'liveEvidence.add.'+kind,{kind:t('liveEvidence.kinds.'+kind)})} disabled={disabled || busy || uncertain || !enabled || (data?.items.length??0)>=30} onPress={()=>void pick(kind)}/>
+    {Platform.OS!=='web' && <Action secondary icon="camera-outline" label={t(data?.mode==='PRODUCTION'?'registrationIntegration.capture':'liveEvidence.capture',{kind:t('liveEvidence.kinds.'+kind)})}
       disabled={disabled || busy || uncertain || !enabled || (data?.items.length??0)>=30} onPress={()=>void pick(kind,true)}/>}</Card>;
   const content=<>
-    {!compact && <><Heading>{t('liveEvidence.title')}</Heading><Notice tone="warning">{t('liveEvidence.samples')}</Notice></>}
-    {Platform.OS!=='web' && <Notice>{t(enabled?'liveEvidence.nativeEncrypted':'liveEvidence.nativePending')}</Notice>}
+    {!compact && <><Heading>{t('liveEvidence.title')}</Heading><Notice tone="warning">{t(data?.mode==='PRODUCTION'?'registrationIntegration.savedEvidence':'liveEvidence.samples')}</Notice></>}
+    {Platform.OS!=='web' && <Notice>{t(enabled?(data?.mode==='PRODUCTION'?'registrationIntegration.nativeRecovery':'liveEvidence.nativeEncrypted'):'liveEvidence.nativePending')}</Notice>}
     {(query.isPending || query.isFetching) && <Copy>{t('liveEvidence.loading')}</Copy>}
     {query.isError && <Notice tone="danger">{t('liveEvidence.failed')}</Notice>}
     {data && !data.uploadsEnabled && <Notice>{t('liveEvidence.setupPending')}</Notice>}

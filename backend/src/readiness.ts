@@ -1,3 +1,4 @@
+import {setRequestIdentity} from './requestIdentity';
 import { ForbiddenException, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
 import { Pool } from 'pg';
 
@@ -12,7 +13,7 @@ export class PostgresReadinessStore implements ReadinessStore {
     try {
       await client.query('begin');
       await client.query('set local role autoguardian_enrollment_api');
-      await client.query("select set_config('autoguardian.tenant_id',$1,true),set_config('autoguardian.auth_user_id',$2,true)", [this.tenantId, actor]);
+      await setRequestIdentity(client,this.tenantId,actor);
       const allowed = await client.query('select private.enrollment_agent_id(null) as actor');
       if (!allowed.rows[0].actor) throw new ForbiddenException({ code: 'AGENT_ACCESS_REQUIRED' });
       const result = await client.query('select private.enrollment_readiness($1) as result', [draftId]);

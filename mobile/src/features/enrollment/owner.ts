@@ -21,8 +21,12 @@ export const ownerSnapshotSchema = z.object({
   documents: z.array(z.object({ version: text(100), language: z.enum(['en', 'fr']), termsText: text(4000), dataText: text(4000) })).max(2),
   consent: z.object({ status: z.enum(['RECORDED', 'WITHDRAWN']), version: text(100), language: z.enum(['en', 'fr']),
     recordedAt: z.iso.datetime({ offset: true }), recordedByProfileId: z.uuid(), source: z.literal('AGENT_RECORDED_SAMPLE') }).nullable(),
-  sampleOnly: z.literal(true), phoneVerified: z.literal(false), productionConsentVerified: z.literal(false),
+  mode:z.enum(['DEVELOPMENT','PRODUCTION']).optional().default('DEVELOPMENT'),
+  sampleOnly: z.boolean(), phoneVerified: z.literal(false), productionConsentVerified: z.boolean(),
 }).superRefine((v, ctx) => {
+  if(v.sampleOnly!==(v.mode==='DEVELOPMENT') || (v.mode==='DEVELOPMENT' && v.productionConsentVerified)
+    || (v.mode==='PRODUCTION' && (v.documents.length>0 || v.consent!==null || v.details?.type==='COMPANY')))
+    ctx.addIssue({code:'custom',message:'Invalid registration mode.'});
   if (new Set(v.documents.map(d => d.language)).size !== v.documents.length || Boolean(v.details) !== Boolean(v.savedAt)
     || (v.consent && (!v.details || v.consent.language !== v.details.preferredLanguage
       || !v.documents.some(d => d.language === v.consent!.language && d.version === v.consent!.version)))) {

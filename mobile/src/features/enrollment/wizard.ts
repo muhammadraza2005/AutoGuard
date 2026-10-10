@@ -20,14 +20,18 @@ export function developmentAgentAllowed(development: boolean, profile: { roles: 
   return development && Boolean(profile?.roles.some(r => r.code === 'ENROLLMENT_AGENT' && z.uuid().safeParse(r.organizationId).success));
 }
 export function connectedAgentRoute(development: boolean, profile: Parameters<typeof developmentAgentAllowed>[1], page: 'home' | 'account' = 'home') {
-  if (!developmentAgentAllowed(development, profile)) return '/live-account' as const;
+  if (!enrollmentAgentAllowed(profile)) return '/live-account' as const;
   return page === 'account' ? '/agent/account' as const : '/agent' as const;
 }
-export function savedWizardSteps(checks: { code: string; status: string }[]) {
+// Navigation follows server roles; every production request still requires live MFA.
+export function enrollmentAgentAllowed(profile: Parameters<typeof developmentAgentAllowed>[1]) {
+  return developmentAgentAllowed(true,profile);
+}
+export function savedWizardSteps(checks: { code: string; status: string }[], mode='DEVELOPMENT') {
   const complete = (code: string) => checks.some(c => c.code === code && c.status === 'COMPLETE');
   return {
     vehicle: complete('VEHICLE_DRAFT') && complete('OWNER_SELECTION'),
-    owner: complete('OWNER_DETAILS_SAMPLE') && complete('CONSENT_SAMPLE'),
+    owner: complete('OWNER_DETAILS_SAMPLE') && (mode==='PRODUCTION' || complete('CONSENT_SAMPLE')),
     documents: ['IDENTITY_SAMPLE', 'REGISTRATION_SAMPLE', 'VEHICLE_PHOTO_SAMPLE'].every(complete),
     seals: complete('SEAL_FITTING'),
     // Reviewing the checklist is never a completed registration.

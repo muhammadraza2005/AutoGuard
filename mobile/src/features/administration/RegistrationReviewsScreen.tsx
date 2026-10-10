@@ -9,6 +9,8 @@ import {Action,AppHeader,Card,Copy,Heading,Notice,StitchPage} from '@/components
 import {EvidencePreview} from '@/features/enrollment/EvidencePreview';
 import {changeReview,reviewQueue,reviewState,reviewReasons,type ReviewAttempt,type ReviewBody,type ReviewState} from './registrationReviews';
 import {loadReview,persistReview,clearReview} from './reviewRecovery';
+import {ProductionSealInspectionPanel,RegistrationSealBatchPanel} from './ProductionSealPanels';
+import {profileScope} from '@/features/auth/authEvents';
 
 export default function RegistrationReviewsScreen(){
   const {t}=useTranslation();const {profile,request}=useSession();const [id,setId]=useState<string|null>(null),[offset,setOffset]=useState(0);
@@ -16,8 +18,8 @@ export default function RegistrationReviewsScreen(){
   const queue=useQuery({queryKey:['authority-reviews',profile?.tenantId,profile?.id,offset],queryFn:({signal})=>reviewQueue(request,offset,signal),
     enabled:allowed&&!id,gcTime:0,retry:false,refetchOnWindowFocus:false});
   return <View style={{flex:1}}><AppHeader/><StitchPage><Heading>{t('registrationReview.title')}</Heading><Copy>{t('registrationReview.policy')}</Copy>
-    {!allowed?<Notice tone="danger">{t('registrationReview.denied')}</Notice>:id?<Review key={id} id={id} back={()=>setId(null)}/>:
-      <>{queue.isFetching&&<Copy>{t('registrationReview.loading')}</Copy>}{queue.isError&&<Notice tone="danger">{t('registrationReview.'+failureKey(queue.error))}</Notice>}
+    {!allowed?<Notice tone="danger">{t('registrationReview.denied')}</Notice>:id?<Review key={profileScope(profile!)+':'+id} id={id} back={()=>setId(null)}/>:
+      <><RegistrationSealBatchPanel key={profileScope(profile!)}/>{queue.isFetching&&<Copy>{t('registrationReview.loading')}</Copy>}{queue.isError&&<Notice tone="danger">{t('registrationReview.'+failureKey(queue.error))}</Notice>}
       {!queue.isFetching&&!queue.isError&&queue.data?.items.length===0&&<Copy>{t('registrationReview.empty')}</Copy>}
       {!queue.isFetching&&!queue.isError&&queue.data?.items.map(item=><Card key={item.id}><Heading>{item.chassisIdentifier}</Heading><Copy>{item.plate}</Copy>
         {item.mode==='DEVELOPMENT'&&<Notice>{t('registrationReview.sample')}</Notice>}<Action label={t('registrationReview.open')} onPress={()=>setId(item.id)}/></Card>)}
@@ -32,6 +34,7 @@ function Review({id,back}:{id:string;back:()=>void}){
   const queryKey=['authority-review',profile?.tenantId,profile?.id,id];
   const query=useQuery({queryKey,queryFn:({signal})=>reviewState(request,id,signal),gcTime:0,retry:false,refetchOnWindowFocus:false});
   const [busy,setBusy]=useState(false),[restoring,setRestoring]=useState(true),[uncertain,setUncertain]=useState(false),[storageFailed,setStorageFailed]=useState(false),[error,setError]=useState<unknown>(null);
+  const [sealBusy,setSealBusy]=useState(false);
   const [preview,setPreview]=useState<{id:string;mimeType:string;dataBase64:string;snapshot:number}|null>(null),[rendered,setRendered]=useState(false),[attested,setAttested]=useState(false);
   const [replacement,setReplacement]=useState<string|null>(null),[checked,setChecked]=useState(new Set<string>());
   const attempt=useRef<ReviewAttempt|null>(null),mounted=useRef(true),inFlight=useRef(false),abort=useRef<AbortController|null>(null);
@@ -40,7 +43,8 @@ function Review({id,back}:{id:string;back:()=>void}){
     const sub=AppState.addEventListener('change',state=>{if(state!=='active'){abort.current?.abort();setPreview(null);setChecked(new Set());setAttested(false);}});
     return()=>{mounted.current=false;abort.current?.abort();sub.remove();};},[id]);
   const value=!query.isFetching&&!query.isError?query.data:undefined;
-  const locked=busy||restoring||uncertain||storageFailed||query.isFetching||!value;
+  const reviewLocked=busy||restoring||uncertain||storageFailed||query.isFetching||!value;
+  const locked=reviewLocked||sealBusy;
   function body(action:ReviewBody['action'],attachmentId:string|null=null,reason:ReviewBody['reason']=null,replacementId:string|null=null):ReviewBody{
     return {expectedDraftRevision:value!.draftRevision,expectedSnapshotRevision:value!.snapshotRevision,expectedReviewRevision:value!.reviewRevision,
       action,attachmentId,reason,replacementId,inspected:action!=='READ_REQUESTED'};
@@ -61,7 +65,7 @@ function Review({id,back}:{id:string;back:()=>void}){
       if(mounted.current&&AppState.currentState==='active'&&'dataBase64'in result)setPreview({...result,snapshot:value.snapshotRevision});
     }catch(e){if(mounted.current)setError(e);}finally{inFlight.current=false;if(mounted.current)setBusy(false);}
   }
-  return <><Action secondary disabled={busy||uncertain||restoring||storageFailed} label={t('registrationReview.back')} onPress={back}/>
+  return <><Action secondary disabled={busy||uncertain||restoring||storageFailed||sealBusy} label={t('registrationReview.back')} onPress={back}/>
     {query.isFetching&&<Copy>{t('registrationReview.loading')}</Copy>}
     {Boolean(error||query.error)&&<Notice tone="danger">{t('registrationReview.'+failureKey(error||query.error))}</Notice>}
     {uncertain&&<><Notice tone="warning">{t('registrationReview.uncertain')}</Notice><Action disabled={busy} label={t('registrationReview.retry')} onPress={()=>void save()}/>
@@ -90,10 +94,12 @@ function Review({id,back}:{id:string;back:()=>void}){
           <Action disabled={locked||value.frozen} label={t('registrationReview.replaceWith')} onPress={()=>{void save(body('SUPERSEDED',replacement,null,item.id));setReplacement(null);}}/>}
       </Card>)}
       {replacement&&<Action secondary label={t('registrationReview.cancelReplace')} onPress={()=>setReplacement(null)}/>}
+      {value.mode==='PRODUCTION'&&<ProductionSealInspectionPanel id={id} disabled={reviewLocked} onBusyChange={setSealBusy}
+        onSaved={()=>{setAttested(false);void query.refetch();}}/>}
       <Action secondary disabled={locked||!value.canApprove} label={(attested?'✓ ':'')+t('registrationReview.attest')} onPress={()=>setAttested(v=>!v)}/>
       <Action disabled={locked||!value.canApprove||!attested} label={t('registrationReview.approve')} onPress={()=>void save(body('APPROVED'))}/>
       <Heading>{t('registrationReview.history')}</Heading>{value.history.map(event=><Copy key={event.id} selectable>{event.createdAt+' · '+t('registrationReview.decisions.'+event.action)+' · '+(event.attachmentId??'')+(event.reason?' · '+t('registrationReview.reasons.'+event.reason):'')}</Copy>)}
     </>}
-    <Action secondary disabled={busy||uncertain||restoring||storageFailed} label={t('registrationReview.refresh')} onPress={()=>{setPreview(null);setChecked(new Set());setAttested(false);void query.refetch();}}/>
+    <Action secondary disabled={busy||uncertain||restoring||storageFailed||sealBusy} label={t('registrationReview.refresh')} onPress={()=>{setPreview(null);setChecked(new Set());setAttested(false);void query.refetch();}}/>
   </>;
 }

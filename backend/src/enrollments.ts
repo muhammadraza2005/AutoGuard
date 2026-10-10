@@ -1,3 +1,4 @@
+import {setRequestIdentity} from './requestIdentity';
 import { BadRequestException, ConflictException, ForbiddenException, NotFoundException, UnprocessableEntityException } from '@nestjs/common';
 import { Pool, PoolClient } from 'pg';
 import { IdentityVerifier } from './auth';
@@ -54,15 +55,15 @@ export interface EnrollmentStore {
   detail(actor: string, id: string): Promise<unknown>;
   save(actor: string, input: DraftInput, id?: string, key?: string): Promise<unknown>;
 }
-const projection = `id, organization_id as "organizationId", owner_profile_id as "ownerProfileId", status, revision,
+const projection = `id, organization_id as "organizationId", owner_profile_id as "ownerProfileId", status, revision, enrollment_mode as mode,
   created_at as "createdAt", updated_at as "updatedAt", jsonb_build_object('chassisIdentifier',chassis_identifier,
   'plate',plate,'category',category,'make',make,'model',model,'manufactureYear',manufacture_year,'color',color) as vehicle`;
 
 export class PostgresEnrollmentStore implements EnrollmentStore {
-  constructor(private readonly pool: Pool, private readonly tenantId: string) {}
+  constructor(private readonly pool: Pool, private readonly tenantId: string, private readonly production=false) {}
   async ownerOptions(actor: string, organizationId: string) {
     return this.transaction(actor, async client => {
-      const result = await client.query('select private.enrollment_owner_options($1) as options',[organizationId]);
+      const result = await client.query(`select private.${this.production?'production_owner_options':'enrollment_owner_options'}($1) as options`,[organizationId]);
       return result.rows[0].options;
     });
   }
@@ -83,7 +84,7 @@ export class PostgresEnrollmentStore implements EnrollmentStore {
   }
   async save(actor: string, input: DraftInput, id?: string, key?: string) {
     const result = await this.transaction(actor, async client => {
-      const response = await client.query('select private.save_enrollment_draft($1,$2,$3,$4,$5::jsonb,$6) as draft',
+      const response = await client.query(`select private.${this.production?'save_production_enrollment_draft':'save_enrollment_draft'}($1,$2,$3,$4,$5::jsonb,$6) as draft`,
         [id ?? null, key ?? null, input.organizationId,input.ownerProfileId,JSON.stringify(input.vehicle),input.expectedRevision ?? null]);
       return response.rows[0].draft;
     });
@@ -96,7 +97,7 @@ export class PostgresEnrollmentStore implements EnrollmentStore {
     try {
       await client.query('begin');
       await client.query('set local role autoguardian_enrollment_api');
-      await client.query(`select set_config('autoguardian.tenant_id',$1,true),set_config('autoguardian.auth_user_id',$2,true)`,[this.tenantId,actor]);
+      await setRequestIdentity(client,this.tenantId,actor);
       const allowed = await client.query('select private.enrollment_agent_id(null) as actor');
       if (!allowed.rows[0].actor) throw new ForbiddenException({ code: 'AGENT_ACCESS_REQUIRED' });
       const result = await read(client);

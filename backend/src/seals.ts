@@ -1,3 +1,4 @@
+import {setRequestIdentity} from './requestIdentity';
 import { BadRequestException, ConflictException, ForbiddenException, NotFoundException, ServiceUnavailableException, UnprocessableEntityException } from '@nestjs/common';
 import { Pool } from 'pg';
 
@@ -19,7 +20,7 @@ export function sealFittingInput(value:unknown,validateOnly=false):SealFittingIn
       || !Number.isInteger(p.position) || p.position<1 || p.position>4 || typeof p.sealCode!=='string'
       || (p.photoId!==null && (typeof p.photoId!=='string' || !uuid.test(p.photoId)))) return invalid();
     const sealCode=p.sealCode.trim().toUpperCase();
-    if(!/^DEV-SEAL-[A-Z0-9-]{1,40}$/.test(sealCode)) return invalid();
+    if(!/^(DEV-SEAL-[A-Z0-9-]{1,40}|AG[A-F0-9]{32})$/.test(sealCode)) return invalid();
     return {position:p.position,sealCode,photoId:p.photoId?.toLowerCase()??null};
   }).sort((a,b)=>a.position-b.position);
   if(new Set(placements.map(p=>p.position)).size!==placements.length || (!validateOnly && (new Set(placements.map(p=>p.sealCode)).size!==placements.length
@@ -35,13 +36,13 @@ export interface SealStore {
   save(actor:string,draftId:string,key:string,input:SealFittingInput):Promise<unknown>;
 }
 export class PostgresSealStore implements SealStore {
-  constructor(private readonly pool:Pool,private readonly tenantId:string) {}
+  constructor(private readonly pool:Pool,private readonly tenantId:string,private readonly production=false) {}
   locations(actor:string,draftId:string) {return this.call(actor,'draft_seal_locations_read',[draftId]);}
   saveLocations(actor:string,draftId:string,key:string,input:ReturnType<typeof sealLocationInput>) {
     return this.call(actor,'save_draft_seal_locations',[draftId,key,input.expectedDraftRevision,input.expectedFittingRevision,input.expectedLocationRevision,JSON.stringify(input.locations)]);
   }
   stock(actor:string,organizationId:string,page:{limit:number;cursor?:string}) {
-    return this.call(actor,'development_seal_stock_page',[organizationId,page.limit,page.cursor??null]);
+    return this.call(actor,this.production?'production_seal_stock_page':'development_seal_stock_page',[organizationId,page.limit,page.cursor??null]);
   }
   fitting(actor:string,draftId:string) {return this.call(actor,'draft_seal_fitting_read',[draftId]);}
   validate(actor:string,draftId:string,input:SealFittingInput) {
@@ -54,13 +55,13 @@ export class PostgresSealStore implements SealStore {
     const client=await this.pool.connect();
     try {
       await client.query('begin');await client.query('set local role autoguardian_enrollment_api');
-      await client.query(`select set_config('autoguardian.tenant_id',$1,true),set_config('autoguardian.auth_user_id',$2,true)`,[this.tenantId,actor]);
+      await setRequestIdentity(client,this.tenantId,actor);
       const allowed=await client.query('select private.enrollment_agent_id(null) as actor');
       if(!allowed.rows[0].actor) throw new ForbiddenException({code:'AGENT_ACCESS_REQUIRED'});
       // fn is selected only by the fixed methods above, never from request data.
       const result=await client.query(`select private.${fn}(${values.map((_,i)=>'$'+(i+1)).join(',')}) as result`,values);
       const value=result.rows[0].result;
-      if(fn.includes('locations') ? value?.version!==1 : fn!=='development_seal_stock_page' && value?.sealValidation?.version!==1)
+      if(fn.includes('locations') ? value?.version!==1 : !fn.endsWith('_stock_page') && value?.sealValidation?.version!==1)
         throw new ServiceUnavailableException({code:'SEAL_SETUP_REQUIRED'});
       await client.query('commit');return value;
     } catch(error) {

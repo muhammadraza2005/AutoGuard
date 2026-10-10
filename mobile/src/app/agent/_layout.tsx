@@ -8,14 +8,14 @@ import { colors } from '@/theme/tokens';
 import { AppHeader, Copy, StitchPage } from '@/components/ui/Stitch';
 import { StitchTabBar } from '@/components/ui/StitchTabBar';
 import { runtime } from '@/config/runtime';
-import { developmentAgentAllowed } from '@/features/enrollment/wizard';
+import { enrollmentAgentAllowed } from '@/features/enrollment/wizard';
 
 export default function SectionLayout() {
   const { t } = useTranslation();
   const { session, profile, loading, error } = useSession();
   if(!runtime.isDemo && loading)return <StitchPage><Copy>{t('devAuth.loading')}</Copy></StitchPage>;
   if(!runtime.isDemo && (error || !profile))return <Redirect href="/live-account"/>;
-  if (!(runtime.isDemo ? canAccessSection(session, 'agent') : developmentAgentAllowed(runtime.developmentEmailAuth,profile)))
+  if (!(runtime.isDemo ? canAccessSection(session, 'agent') : enrollmentAgentAllowed(profile)))
     return <Redirect href="/permission-denied" />;
   
   return (

@@ -23,7 +23,7 @@ export function SealLocationPanel({ draftId, refreshKey, readOnly = false, disab
   useEffect(() => { if (refreshKey !== undefined) void refetch(); }, [refreshKey, refetch]);
   const loading = query.isPending || query.isFetching;
   const value = !loading && !query.isError ? query.data : undefined;
-  return <Card><Heading>{t('sealLocations.title')}</Heading><Copy>{t('sealLocations.notice')}</Copy>
+  return <Card><Heading>{t('sealLocations.title')}</Heading><Copy>{t(value?.mode==='PRODUCTION'?'registrationIntegration.sealsNotice':'sealLocations.notice')}</Copy>
     {loading && <Copy>{t('sealLocations.loading')}</Copy>}
     {query.isError && <Notice tone="danger">{t('sealLocations.' + errorKey(query.error))}</Notice>}
     {value && <>

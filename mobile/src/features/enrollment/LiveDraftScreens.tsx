@@ -13,6 +13,7 @@ import {workingCopies} from './workingCopies';
 import {WorkingCopyStatus} from './WorkingCopyStatus';
 import { enrollmentRoute } from './wizard';
 import { colors } from '@/theme/tokens';
+import {runtime} from '@/config/runtime';
 
 export function ErrorNotice({error}:{error:unknown}) {
   const {t}=useTranslation();const status=error instanceof ApiError?error.status:undefined;
@@ -34,7 +35,7 @@ export function EnrollmentDraftList({embedded=false}:{embedded?:boolean}={}) {
   const {refetch}=query;useFocusEffect(useCallback(()=>{void refetch();},[refetch]));
   const checking=query.isPending || query.isRefetching;
   const items=!checking && !query.isError?query.data?.pages.flatMap(p=>p.items)??[]:[];
-  const content=<><Heading>{t('enrollmentWizard.list')}</Heading><Notice tone="warning">{t('enrollmentWizard.notice')}</Notice>
+  const content=<><Heading>{t('enrollmentWizard.list')}</Heading><Notice tone="warning">{t(runtime.developmentEmailAuth?'enrollmentWizard.notice':'registrationIntegration.notice')}</Notice>
     <Action label={t('enrollmentWizard.new')} icon="add-circle-outline" onPress={()=>router.navigate(enrollmentRoute())} />
     {checking && <Copy>{t('liveEnrollment.loading')}</Copy>}
     {!checking && query.isError && <ErrorNotice error={query.error} />}
@@ -137,7 +138,7 @@ export function DraftEditor({draft,onSaved,onBusyChange,onDirtyChange}:{draft?:E
   }
   return <>
     <WorkingCopyStatus />
-    <Notice tone="warning">{t('liveEnrollment.notice')}</Notice>
+    <Notice tone="warning">{t(runtime.developmentEmailAuth?'liveEnrollment.notice':'registrationIntegration.notice')}</Notice>
     {draft && <Notice>{t('liveEnrollment.saved')} · {t('liveEnrollment.revision',{revision:draft.revision})}</Notice>}
     <Card style={ownerInvalid || organizationInvalid?{borderColor:colors.danger,borderWidth:2}:undefined}>
       <View ref={organizationTarget} collapsable={false} style={{gap:14}}><Label>{t('liveEnrollment.organization')}</Label>

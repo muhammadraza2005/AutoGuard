@@ -1,0 +1,14 @@
+{
+  "status": "DRAFT_TEST_ONLY_NOT_APPROVED",
+  "productName": "AutoGuardian",
+  "productNameSource": "SRS",
+  "operatingOrganization": "PLACEHOLDER: AutoGuardian test operator",
+  "registrationAuthority": "PLACEHOLDER: registration authority to be confirmed",
+  "privacyContact": "PLACEHOLDER: privacy@autoguardian.invalid",
+  "retentionPolicy": "PLACEHOLDER: retention periods and deletion rules require authority approval",
+  "sealVerificationOrigin": "https://seals.autoguardian.invalid",
+  "consentApproved": false,
+  "consentDraft": "AGENT-ACCESS-CONSENT-PROPOSAL.md",
+  "smsMilestone": 2,
+  "paymentsMilestone": 3
+}

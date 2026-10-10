@@ -3,6 +3,7 @@ import {Buffer} from 'node:buffer';
 import {createCanvas,DOMMatrix,ImageData,Path2D} from '@napi-rs/canvas';
 import {pdfRenderer} from '../src/features/enrollment/pdfRenderer.generated.ts';
 import {pdfPreviewHtml,pdfViewerMessage,isLocalPdfNavigation} from '../src/features/enrollment/pdfPreview.ts';
+import {readFile} from 'node:fs/promises';
 function vectorPdf(){
   const parts=['%PDF-1.4\n'],offsets=[0];
   const objects=['<< /Type /Catalog /Pages 2 0 R >>','<< /Type /Pages /Kids [3 0 R 5 0 R] /Count 2 >>',
@@ -15,6 +16,26 @@ function vectorPdf(){
     `trailer\n<< /Size 7 /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF\n`);return Buffer.from(parts.join(''));
 }
 const labels={previous:'Previous',next:'Next',page:'Page',loading:'Loading',failed:'Failed',text:'Text'};
+test('the exact registration test-pack PDFs parse, expose their synthetic labels and render in the bundled viewer',async()=>{
+  const context=vm.createContext({console,setTimeout,clearTimeout,URL,DOMMatrix,ImageData,Path2D,
+    TextEncoder,TextDecoder,ReadableStream,WritableStream,TransformStream,structuredClone,atob,btoa,MessageChannel,
+    Uint8Array,Uint32Array,ArrayBuffer,DataView,Promise,Blob,Response,Request,Headers,AbortController,AbortSignal,DOMException,performance,queueMicrotask,URLSearchParams,
+    fetch:()=>{throw new Error('Network forbidden in evidence viewer');}});
+  vm.runInContext(pdfRenderer,context);
+  for(const name of ['02-registration-document.pdf','Optional-purchase-proof.pdf']){
+    const bytes=await readFile(new URL('../../Milestone-1-Test-Uploads/'+name,import.meta.url));
+    const task=context.agPdf.getDocument({data:new Uint8Array(bytes),isEvalSupported:false,useWasm:false,disableFontFace:true,useSystemFonts:true});
+    try{
+      const pdf=await task.promise;assert.equal(pdf.numPages,1);const page=await pdf.getPage(1);
+      const content=(await page.getTextContent()).items.map(i=>i.str).join(' ');
+      assert.ok(content.includes('SYNTHETIC TEST ONLY'));assert.ok(content.includes('AG-M1-TEST-0001'));assert.ok(content.includes('Not an official document'));
+      const viewport=page.getViewport({scale:1}),canvas=createCanvas(viewport.width,viewport.height);
+      const ctx=canvas.getContext('2d');await page.render({canvasContext:ctx,viewport}).promise;
+      const pixels=ctx.getImageData(0,0,canvas.width,canvas.height).data;
+      assert.ok(pixels.some((v,i)=>i%4!==3&&v<128),'The supplied PDF must render visible document text.');page.cleanup();
+    }finally{await task.destroy();}
+  }
+});
 test('bundled offline engine parses and renders real PDF pages; malformed documents fail closed',async()=>{
   // Execute the exact browser bundle without network or a browser. Canvas is a
   // real native Node canvas. This does not replace Android WebView acceptance.

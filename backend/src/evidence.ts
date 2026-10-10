@@ -1,3 +1,4 @@
+import {setRequestIdentity} from './requestIdentity';
 import { BadRequestException, ConflictException, ForbiddenException, NotFoundException, PayloadTooLargeException,
   ServiceUnavailableException, UnprocessableEntityException } from '@nestjs/common';
 import { createCipheriv, createDecipheriv, createHash, randomBytes } from 'node:crypto';
@@ -6,6 +7,7 @@ import sharp from 'sharp';
 import { Pool, PoolClient } from 'pg';
 export const EVIDENCE_MAX=2097152;
 export const EVIDENCE_BUCKET='development-enrollment-evidence';
+export const PRODUCTION_EVIDENCE_BUCKET='registration-enrollment-evidence';
 export const evidencePhotoKinds=['VEHICLE_PHOTO','SEAL_FITTING_PHOTO','VEHICLE_FRONT','VEHICLE_REAR',
   'VEHICLE_LEFT','VEHICLE_RIGHT','CHASSIS_PHOTO','PLATE_PHOTO'] as const;
 export const evidenceKinds=['OWNER_ID','REGISTRATION_DOCUMENT','PURCHASE_PROOF',...evidencePhotoKinds] as const;
@@ -96,33 +98,34 @@ type UploadContext={draftRevision:number;ownerGeneration:number};
 export interface EvidenceStorage {check():Promise<void>;put(path:string,bytes:Buffer):Promise<void>;get(path:string):Promise<Buffer>}
 export class SupabaseEvidenceStorage implements EvidenceStorage {
   private readonly client:SupabaseClient;
-  constructor(url:string,secret:string) {
+  constructor(url:string,secret:string,private readonly bucket=EVIDENCE_BUCKET) {
     const parsed=new URL(url);
     if(parsed.protocol!=='https:' || !parsed.hostname.endsWith('.supabase.co') || !secret.startsWith('sb_secret_')) {
       throw new Error('Evidence storage needs the hosted Supabase URL and a server-only secret key.');
     }
+    if(!/^[a-z][a-z0-9-]{2,62}$/.test(bucket)) throw new Error('Invalid evidence bucket name.');
     this.client=createClient(url,secret,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false},
       global:{fetch:(input,init)=>fetch(input,{...init,signal:AbortSignal.timeout(8000)})}});
   }
   async check() {
-    const {data,error}=await this.client.storage.getBucket(EVIDENCE_BUCKET);
+    const {data,error}=await this.client.storage.getBucket(this.bucket);
     if(error || !data || data.public || data.file_size_limit!==EVIDENCE_MAX+64
       || data.allowed_mime_types?.length!==1 || data.allowed_mime_types[0]!=='application/octet-stream') throw unavailable();
   }
   async put(path:string,bytes:Buffer) {
-    const {error}=await this.client.storage.from(EVIDENCE_BUCKET).upload(path,bytes,{contentType:'application/octet-stream',upsert:false});
+    const {error}=await this.client.storage.from(this.bucket).upload(path,bytes,{contentType:'application/octet-stream',upsert:false});
     if(error && String((error as unknown as {statusCode?:string}).statusCode)!=='409') throw unavailable();
     // Existing objects are not overwritten; the service verifies their contents before finalizing.
   }
   async get(path:string) {
-    const {data,error}=await this.client.storage.from(EVIDENCE_BUCKET).download(path);
+    const {data,error}=await this.client.storage.from(this.bucket).download(path);
     if(error || !data || data.size>EVIDENCE_MAX+64) throw unavailable();
     return Buffer.from(await data.arrayBuffer());
   }
 }
 export class PostgresEvidenceStore {
   constructor(private readonly pool:Pool,private readonly tenantId:string) {}
-  list(actor:string,id:string):Promise<{items:Metadata[];evidenceChecklist:{version:number;complete:boolean;items:{code:string;status:string}[]}}> {
+  list(actor:string,id:string):Promise<{mode?:'DEVELOPMENT'|'PRODUCTION';items:Metadata[];evidenceChecklist:{version:number;complete:boolean;items:{code:string;status:string}[]}}> {
     return this.call(actor,'enrollment_attachment_list',[id]);
   }
   reserve(actor:string,id:string,key:string,input:Awaited<ReturnType<typeof evidenceInput>>):Promise<RecordRow> {
@@ -149,7 +152,7 @@ export class PostgresEvidenceStore {
     const client:PoolClient=await this.pool.connect();
     try {
       await client.query('begin');await client.query('set local role autoguardian_enrollment_api');
-      await client.query("select set_config('autoguardian.tenant_id',$1,true),set_config('autoguardian.auth_user_id',$2,true)",[this.tenantId,actor]);
+      await setRequestIdentity(client,this.tenantId,actor);
       const allowed=await client.query('select private.enrollment_agent_id(null) as actor');
       if(!allowed.rows[0].actor) throw new ForbiddenException({code:'AGENT_ACCESS_REQUIRED'});
       const result=await client.query(`select private.${name}(${params.map((_,i)=>'$'+(i+1)).join(',')}) as result`,params);
@@ -168,7 +171,10 @@ export class PostgresEvidenceStore {
 }
 export class EvidenceService {
   constructor(private readonly store:PostgresEvidenceStore,private readonly storage?:EvidenceStorage,
-    private readonly cipher?:ReturnType<typeof evidenceCipher>) {}
+    private readonly cipher?:ReturnType<typeof evidenceCipher>,private readonly mode?:'DEVELOPMENT'|'PRODUCTION') {}
+  private checkMode(result:{mode?:string}) {
+    if(this.mode && (result.mode??'DEVELOPMENT')!==this.mode) throw new ServiceUnavailableException({code:'EVIDENCE_SETUP_REQUIRED'});
+  }
   async reviews(actor:string,id:string) {return this.validReviews(await this.store.reviews(actor,id));}
   async saveReview(actor:string,id:string,attachment:string,key:string,body:unknown) {
     return this.validReviews(await this.store.saveReview(actor,id,attachment,key,evidenceReviewInput(body)));
@@ -180,16 +186,18 @@ export class EvidenceService {
   }
   async list(actor:string,id:string) {
     const result=await this.store.list(actor,id);
+    this.checkMode(result);
     if(result.evidenceChecklist?.version!==1) throw new ServiceUnavailableException({code:'EVIDENCE_SETUP_REQUIRED'});
     let enabled=false;
     if(this.storage && this.cipher) {try {await this.storage.check();enabled=true;} catch { /* Keep setup failures generic. */ }}
     const nativeUploadContext=await this.store.nativeContext(actor,id);
-    return {...result,uploadsEnabled:enabled,nativeUploadContext,sampleOnly:true,maxBytes:EVIDENCE_MAX};
+    return {...result,uploadsEnabled:enabled,nativeUploadContext,sampleOnly:result.mode!=='PRODUCTION',maxBytes:EVIDENCE_MAX};
   }
   async upload(actor:string,id:string,key:string,body:unknown) {
     if(!this.storage || !this.cipher) throw unavailable();
     // Check draft authorization before parsing or handing bytes to privileged Storage.
     const saved=await this.store.list(actor,id);
+    this.checkMode(saved);
     if(saved.evidenceChecklist?.version!==1) throw new ServiceUnavailableException({code:'EVIDENCE_SETUP_REQUIRED'});
     await this.storage.check();
     const input=await evidenceInput(body);const row=await this.store.reserve(actor,id,key,input);
@@ -214,8 +222,12 @@ export class EvidenceService {
   }
 }
 export function configuredEvidence(env:NodeJS.ProcessEnv,store:PostgresEvidenceStore,development:boolean) {
-  if(!development || !env.SUPABASE_STORAGE_SECRET_KEY?.trim()) return new EvidenceService(store);
-  if(!/^[0-9a-f]{64}$/i.test(env.ENROLLMENT_EVIDENCE_KEY_HEX??'')) throw new Error('Configure ENROLLMENT_EVIDENCE_KEY_HEX before enabling uploads.');
-  const cipher=evidenceCipher(Buffer.from(env.ENROLLMENT_EVIDENCE_KEY_HEX!,'hex'));
-  return new EvidenceService(store,new SupabaseEvidenceStorage(env.SUPABASE_URL!,env.SUPABASE_STORAGE_SECRET_KEY.trim()),cipher);
+  const key=development?env.ENROLLMENT_EVIDENCE_KEY_HEX:env.PRODUCTION_EVIDENCE_KEY_HEX;
+  if(!env.SUPABASE_STORAGE_SECRET_KEY?.trim() || (!development&&!key)) return new EvidenceService(store);
+  if(!/^[0-9a-f]{64}$/i.test(key??'')) throw new Error('Configure the appropriate 32-byte evidence encryption key before enabling uploads.');
+  const bucket=development?EVIDENCE_BUCKET:(env.PRODUCTION_EVIDENCE_BUCKET??PRODUCTION_EVIDENCE_BUCKET);
+  if(!development && (bucket===EVIDENCE_BUCKET || key!.toLowerCase()===env.ENROLLMENT_EVIDENCE_KEY_HEX?.toLowerCase()
+    || key!.toLowerCase()===env.PRODUCTION_OWNER_KEY_HEX?.toLowerCase())) throw new Error('Production evidence requires a separate bucket and encryption key.');
+  const cipher=evidenceCipher(Buffer.from(key!,'hex'));
+  return new EvidenceService(store,new SupabaseEvidenceStorage(env.SUPABASE_URL!,env.SUPABASE_STORAGE_SECRET_KEY.trim(),bucket),cipher,development?'DEVELOPMENT':'PRODUCTION');
 }

@@ -19,9 +19,10 @@ export function sampleFilePayload(kind:EvidenceKind,dataUrl:string,size:number) 
 export async function listEvidence(request:Request,id:string,signal?:AbortSignal) {
   const result=z.object({items:z.array(evidenceMetadata).max(30),evidenceChecklist:evidenceChecklistSchema,
     uploadsEnabled:z.boolean(),nativeUploadContext:nativeUploadContextSchema.nullable().optional().default(null),
-    sampleOnly:z.literal(true),maxBytes:z.literal(2097152)})
+    mode:z.enum(['DEVELOPMENT','PRODUCTION']).optional().default('DEVELOPMENT'),sampleOnly:z.boolean(),maxBytes:z.literal(2097152)})
     .parse(await request('/v1/enrollment-drafts/'+z.uuid().parse(id)+'/attachments',{signal}));
   if(new Set(result.items.map(item=>item.id)).size!==result.items.length) throw new Error('Invalid attachment list.');
+  if(result.sampleOnly!==(result.mode==='DEVELOPMENT'))throw new Error('Invalid registration mode.');
   for(const requirement of evidenceRequirements) {
     const files=result.items.filter(item=>(requirement.kinds as readonly string[]).includes(item.kind));
     const status=files.some(item=>item.status==='STAGED')?'COMPLETE':files.length?'PENDING':'MISSING';

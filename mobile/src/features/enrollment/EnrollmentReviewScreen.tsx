@@ -41,15 +41,15 @@ export default function EnrollmentReviewScreen({embedded=false,onBusyChange}:{em
     return codes.map(code => {
       const check = value.checks.find(item => item.code === code)!;
       return <View key={code} style={{ gap: 6 }}>
-        <Label>{t('liveReadiness.checks.' + code + '.title')}</Label>
-        <Copy>{t('liveReadiness.statuses.' + check.status)}</Copy>
-        <Copy>{t('liveReadiness.checks.' + code + '.hint')}</Copy>
+        <Label>{t(value.mode==='PRODUCTION'?'registrationIntegration.preparationChecks.'+code:'liveReadiness.checks.' + code + '.title')}</Label>
+        <Copy>{t(value.mode==='PRODUCTION'&&check.status==='COMPLETE'?'registrationIntegration.saved':'liveReadiness.statuses.' + check.status)}</Copy>
+        {value.mode==='DEVELOPMENT'&&<Copy>{t('liveReadiness.checks.' + code + '.hint')}</Copy>}
       </View>;
     });
   }
   const content=<>
     <Heading>{t('liveReadiness.title')}</Heading>
-    <Notice tone="warning">{t('liveReadiness.notice')}</Notice>
+    <Notice tone="warning">{t(data?.mode==='PRODUCTION'?'registrationIntegration.notice':'liveReadiness.notice')}</Notice>
     {!safeId && <Notice tone="danger">{t('liveEnrollment.unavailable')}</Notice>}
     {safeId && loading && <Copy>{t('liveEnrollment.loading')}</Copy>}
     {safeId && !loading && query.isError && <Notice tone="danger">{t(errorKey === 'setup' ? 'liveReadiness.setup' : 'liveEnrollment.' + errorKey)}</Notice>}
@@ -61,12 +61,12 @@ export default function EnrollmentReviewScreen({embedded=false,onBusyChange}:{em
         <DetailRow label={t('liveReadiness.package')} value={data.package === null ? t('liveReadiness.noPackage') : t('liveSeals.packages.' + data.package)} />
       </Card>}
       {embedded && <DetailRow label={t('liveReadiness.package')} value={data.package === null ? t('liveReadiness.noPackage') : t('liveSeals.packages.' + data.package)} />}
-      <Heading>{t('liveReadiness.samples')}</Heading>
+      <Heading>{t(data.mode==='PRODUCTION'?'registrationIntegration.savedEvidence':'liveReadiness.samples')}</Heading>
       <AuthorityReviewFeedback draftId={safeId!}/>
-      <Copy>{t('liveReadiness.savedOnly')}</Copy>
+      <Copy>{t(data.mode==='PRODUCTION'?'registrationIntegration.savedOnly':'liveReadiness.savedOnly')}</Copy>
       <Card>{checklist(sampleCheckCodes, data)}</Card>
       <EvidenceRequirementList value={data.evidenceChecklist}/>
-      <EvidenceReviewPanel key={[profile?.tenantId,profile?.id,safeId].join(':')} draftId={safeId!} disabled={submissionBusy} refreshKey={query.dataUpdatedAt} onBusyChange={reviewBusyChanged}/>
+      {data.mode==='DEVELOPMENT' && <EvidenceReviewPanel key={[profile?.tenantId,profile?.id,safeId].join(':')} draftId={safeId!} disabled={submissionBusy} refreshKey={query.dataUpdatedAt} onBusyChange={reviewBusyChanged}/>}
       <SealValidationSummary value={data.sealValidation} saved/>
       <SealLocationPanel draftId={safeId!} refreshKey={query.dataUpdatedAt} readOnly/>
       <Action secondary label={t('liveOwner.open')} disabled={reviewBusy} onPress={() => router.setParams(enrollmentRoute('owner',safeId!).params)} />

@@ -3,7 +3,7 @@ import { z } from 'zod';
 export const sealIssues = ['SEAL_REQUIRED','SEAL_UNAVAILABLE','SEAL_REVOKED','SEAL_DESTROYED','SEAL_RESERVED',
   'DUPLICATE_SEAL','PACKAGE_TYPE_MISMATCH','PHOTO_REQUIRED','PHOTO_PENDING','PHOTO_UNAVAILABLE','DUPLICATE_PHOTO'] as const;
 export type SealIssue = typeof sealIssues[number];
-export const sealCodeSchema=z.string().trim().toUpperCase().regex(/^DEV-SEAL-[A-Z0-9-]{1,40}$/);
+export const sealCodeSchema=z.string().trim().toUpperCase().regex(/^(DEV-SEAL-[A-Z0-9-]{1,40}|AG[A-F0-9]{32})$/);
 // Scanned URLs/consumer verification tokens are never followed or accepted as fitting codes.
 export function parseFittingCode(raw:string):string|null {
   const value=sealCodeSchema.safeParse(raw);return value.success?value.data:null;

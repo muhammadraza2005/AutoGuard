@@ -22,7 +22,7 @@ test('wizard routes preserve the draft identity, explicitly clear it for new dra
   assert.throws(()=>enrollmentRoute('vehicle','invalid'));
 });
 
-test('sign-in and old account links enter the merged agent tabs only with a genuine scoped development role',()=>{
+test('sign-in and account links admit only server-assigned scoped agent roles in either workflow',()=>{
   const agent={roles:[{code:'ENROLLMENT_AGENT',organizationId:id}]};
   assert.equal(connectedAgentRoute(true,agent),'/agent');
   assert.equal(connectedAgentRoute(true,agent,'account'),'/agent/account');
@@ -31,8 +31,8 @@ test('sign-in and old account links enter the merged agent tabs only with a genu
     assert.equal(connectedAgentRoute(true,profile),'/live-account');
     assert.equal(connectedAgentRoute(true,profile,'account'),'/live-account');
   }
-  assert.equal(connectedAgentRoute(false,agent),'/live-account');
-  assert.equal(connectedAgentRoute(false,agent,'account'),'/live-account');
+  assert.equal(connectedAgentRoute(false,agent),'/agent');
+  assert.equal(connectedAgentRoute(false,agent,'account'),'/agent/account');
 });
 test('progress counts saved preparation only; stale fitting and production blockers never become completed review',()=>{
   const codes=['VEHICLE_DRAFT','OWNER_SELECTION','OWNER_DETAILS_SAMPLE','CONSENT_SAMPLE','IDENTITY_SAMPLE','REGISTRATION_SAMPLE','VEHICLE_PHOTO_SAMPLE','SEAL_FITTING'];

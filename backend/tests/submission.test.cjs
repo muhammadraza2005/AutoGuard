@@ -9,8 +9,10 @@ const tenant='ce31527e-d1b5-4379-9ddd-1458cfb73431',profile='369cbe75-32c8-40b4-
 const codes=['AGENT_AUTHENTICATION','OWNER_PHONE','CONSENT','PRODUCTION_EVIDENCE','SEALS','PAYMENT','REVIEW_POLICY'];
 async function foundation(){
   const db=new PGlite();await db.exec(`create role anon;create role authenticated;create role service_role bypassrls;
-    create role autoguardian_identity_login nologin;create schema auth;create table auth.users(id uuid primary key);`);
-  for(const file of (await fs.readdir(path.resolve(__dirname,'../../supabase/migrations'))).filter(f=>f.endsWith('.sql')).sort())
+    create role autoguardian_identity_login nologin;create schema auth;create table auth.users(id uuid primary key);create table auth.sessions(id uuid primary key,user_id uuid,aal text,factor_id uuid,not_after timestamptz); create table auth.mfa_factors(id uuid primary key,user_id uuid,factor_type text,status text); create table auth.mfa_amr_claims(session_id uuid,authentication_method text,updated_at timestamptz);`);
+  // Test 016/017's isolated receipt/finalizer component. Full 018 authentication,
+  // direct-owner consent and activation integration live in access-consent.test.cjs.
+  for(const file of (await fs.readdir(path.resolve(__dirname,'../../supabase/migrations'))).filter(f=>f.endsWith('.sql')&&f<'202610100018').sort())
     await db.exec(await fs.readFile(path.resolve(__dirname,'../../supabase/migrations',file),'utf8'));
   await db.exec(`insert into auth.users values('${id(1)}'),('${id(2)}'),('${id(3)}');
     insert into app.tenants(id,code,name_en,country_code,currency_code,time_zone) values('${tenant}','AUTOGUARDIAN_DEV','Development','CD','USD','Africa/Kinshasa');

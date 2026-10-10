@@ -17,10 +17,13 @@ export const sealFittingBodySchema=sealValidationBodySchema
 export type SealFittingBody=z.infer<typeof sealFittingBodySchema>;
 export const sealFittingSchema=z.object({draftId:z.uuid(),draftRevision:z.number().int().positive(),fittingRevision:z.number().int().nonnegative(),
   package:sealPackageSchema.nullable(),current:z.boolean(),placements:z.array(placementSchema.extend({sealType:z.enum(['STANDARD','ALARM'])})).max(4),
-  sampleOnly:z.literal(true),sealDraftComplete:z.boolean(),sampleDocumentsSaved:z.boolean(),ownerVerified:z.literal(false),
+  mode:z.enum(['DEVELOPMENT','PRODUCTION']).optional().default('DEVELOPMENT'),
+  sampleOnly:z.boolean(),sealDraftComplete:z.boolean(),sampleDocumentsSaved:z.boolean(),ownerVerified:z.literal(false),
   paymentConfirmed:z.literal(false),enrollmentActive:z.literal(false),sealValidation:sealValidationSchema}).superRefine((v,ctx)=>{
     const alarms=v.placements.filter(p=>p.sealType==='ALARM').length;
     const expected={NONE:0,STANDARD:0,ONE_ALARM:1,FOUR_ALARMS:4};
+    if(v.sampleOnly!==(v.mode==='DEVELOPMENT') || v.placements.some(p=>p.sealCode.startsWith('DEV-')!==v.sampleOnly))
+      ctx.addIssue({code:'custom',message:'Invalid registration mode.'});
     if(v.sealDraftComplete!==v.sealValidation.complete || v.sealValidation.required!==(v.package!=='NONE')
       || v.sealValidation.issues.includes('STALE_FITTING')!==(v.package!==null && !v.current)
       || v.sealValidation.issues.includes('PACKAGE_REQUIRED')!==(v.package===null)
@@ -43,12 +46,15 @@ export async function validateSealFitting(request:Request,id:string,body:SealFit
   return result.sealValidation;
 }
 export async function readSealStock(request:Request,organizationId:string,cursor?:string,signal?:AbortSignal){
-  const result=z.object({items:z.array(z.object({id:z.uuid(),code:sealCode,batchCode:z.string().regex(/^DEV-BATCH-[A-Z0-9-]{1,40}$/),
-    type:z.enum(['STANDARD','ALARM']),status:z.enum(['IN_STOCK','REVOKED','DESTROYED']),available:z.boolean()})).max(20),nextCursor:z.uuid().nullable(),sampleOnly:z.literal(true)})
+  const result=z.object({items:z.array(z.object({id:z.uuid(),code:sealCode,batchCode:z.string().min(3).max(64),
+    type:z.enum(['STANDARD','ALARM']),status:z.enum(['IN_STOCK','REVOKED','DESTROYED','ACTIVE']),available:z.boolean()})).max(20),nextCursor:z.uuid().nullable(),sampleOnly:z.boolean(),
+    mode:z.enum(['DEVELOPMENT','PRODUCTION']).optional().default('DEVELOPMENT')})
     .parse(await request('/v1/seal-stock?organizationId='+z.uuid().parse(organizationId)+'&limit=20'+(cursor?'&cursor='+z.uuid().parse(cursor):''),{signal}));
   if(new Set(result.items.map(s=>s.id)).size!==result.items.length || new Set(result.items.map(s=>s.code)).size!==result.items.length
     || result.items.some(s=>s.status!=='IN_STOCK' && s.available) || (result.nextCursor && (result.nextCursor===cursor || result.nextCursor!==result.items.at(-1)?.id)))
     throw new Error('Invalid stock page.');
+  if(result.sampleOnly!==(result.mode==='DEVELOPMENT') || result.items.some(s=>s.code.startsWith('DEV-')!==result.sampleOnly
+    || (result.sampleOnly&&!/^DEV-BATCH-[A-Z0-9-]{1,40}$/.test(s.batchCode))))throw new Error('Invalid stock mode.');
   return result;
 }
 export async function readSealFitting(request:Request,id:string,signal?:AbortSignal){

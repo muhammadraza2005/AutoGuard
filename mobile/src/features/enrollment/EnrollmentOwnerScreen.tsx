@@ -27,7 +27,7 @@ export default function EnrollmentOwnerScreen({embedded=false,onBusyChange,onDir
     retry: false, networkMode: 'always', refetchOnWindowFocus: false });
   const [busy, setBusy] = useState(false);
   const content=<><Heading>{t('liveOwner.title')}</Heading>
-    <Notice tone="warning">{t('liveOwner.notice')}</Notice>
+    <Notice tone="warning">{t(query.data?.mode==='PRODUCTION'?'registrationIntegration.notice':'liveOwner.notice')}</Notice>
     {!safeId && <Notice tone="danger">{t('liveEnrollment.unavailable')}</Notice>}
     {safeId && query.isFetching && <Copy>{t('liveEnrollment.loading')}</Copy>}
     {safeId && !query.isFetching && query.isError && <OwnerError error={query.error} />}
@@ -125,7 +125,7 @@ function OwnerForm({ snapshot, onBusy, onBusyChange, onDirtyChange }: { snapshot
   }
   return <><Copy>{t(Platform.OS==='web'?'liveOwner.memory':'liveOwner.nativeRecovery')}</Copy>
     {recoveryFailed && <Notice tone="danger">{t('liveEnrollment.nativeRecoveryFailed')}</Notice>}<Card>
-    {(['INDIVIDUAL', 'COMPANY'] as const).map(value => <Action key={value} secondary={type !== value} disabled={locked}
+    {(['INDIVIDUAL', 'COMPANY'] as const).filter(value=>snapshot.mode!=='PRODUCTION'||value==='INDIVIDUAL').map(value => <Action key={value} secondary={type !== value} disabled={locked}
       label={t('liveOwner.' + (value === 'COMPANY' ? 'company' : 'individual'))} onPress={() => setType(value)} />)}
     {(Object.keys(fields) as (keyof typeof fields)[]).filter(field => type === 'COMPANY' || !['companyRegistration', 'representativeName'].includes(field)).map(field =>
       <View key={field} style={{ gap: 6 }}><Label>{t('liveOwner.fields.' + field)}</Label>
@@ -144,8 +144,9 @@ function OwnerForm({ snapshot, onBusy, onBusyChange, onDirtyChange }: { snapshot
     {snapshot.details && <Notice>{t('liveOwner.saved')}</Notice>}
     <Action label={t(busy ? 'liveOwner.saving' : !dirty && snapshot.details ? 'liveOwner.saved' : 'liveOwner.save')} disabled={locked || (!dirty && Boolean(snapshot.details))} onPress={save} />
   </Card><Notice tone="warning">{t('liveOwner.phonePending')}</Notice>
-    <Heading>{t('liveOwner.consentTitle')}</Heading><Notice>{t('liveOwner.consentNotice')}</Notice>
-    {(!document || dirty) && <Notice>{t('liveOwner.saveFirst')}</Notice>}
+    <Heading>{t('liveOwner.consentTitle')}</Heading><Notice>{t(snapshot.mode==='PRODUCTION'?'registrationIntegration.ownerConsent':'liveOwner.consentNotice')}</Notice>
+    {snapshot.mode==='PRODUCTION' && <Notice>{t(snapshot.productionConsentVerified?'registrationIntegration.consentAccepted':'registrationIntegration.consentPending')}</Notice>}
+    {snapshot.mode!=='PRODUCTION' && (!document || dirty) && <Notice>{t('liveOwner.saveFirst')}</Notice>}
     {document && !dirty && <Card><Copy>{document.version} · {document.language.toUpperCase()}</Copy>
       <Label>{t('liveOwner.terms')}</Label><Copy>{document.termsText}</Copy>
       <Action secondary={!terms} disabled={locked} icon={terms ? 'checkbox-outline' : 'square-outline'} label={t('liveOwner.agreeTerms')} onPress={() => setTerms(!terms)} />

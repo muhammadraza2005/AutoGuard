@@ -10,9 +10,14 @@ import { PostgresReadinessStore } from './readiness';
 import { configuredOwner, PostgresOwnerStore } from './owner';
 import { PostgresSubmissionStore } from './submission';
 import { PostgresRegistrationReviewStore, RegistrationReviewService } from './registrationReviews';
+import {SupabaseStaffAuthentication,SupabaseAccountAuthentication,SessionCheckedAuthentication} from './staffAuthentication';
+import {PostgresConsentStore} from './consent';
+import {configuredProductionSeals,PostgresProductionSealStore} from './productionSeals';
 
 async function main() {
   const allowDevelopmentEmail = developmentEmailAllowed(process.env);
+  if(!allowDevelopmentEmail&&process.env.CORS_ORIGIN&&new URL(process.env.CORS_ORIGIN).protocol!=='https:')
+    throw new Error('Production browser access requires an HTTPS CORS origin.');
   const required = ['SUPABASE_URL', 'SUPABASE_PUBLISHABLE_KEY', 'DATABASE_URL', 'AUTOGUARDIAN_TENANT_ID'] as const;
   for (const key of required) if (!process.env[key]?.trim()) throw new Error(`Missing ${key}`);
   const tenant = process.env.AUTOGUARDIAN_TENANT_ID!;
@@ -24,15 +29,24 @@ async function main() {
   const accounts = new PostgresAccountStore(pool, tenant);
   try {
     await accounts.checkConnection();
-    const identity = new SupabaseIdentityVerifier(process.env.SUPABASE_URL!, process.env.SUPABASE_PUBLISHABLE_KEY!, allowDevelopmentEmail);
+    const baseIdentity = new SupabaseIdentityVerifier(process.env.SUPABASE_URL!, process.env.SUPABASE_PUBLISHABLE_KEY!, allowDevelopmentEmail);
+    const identity=allowDevelopmentEmail?{verify:async(header:string|undefined)=>{
+      const actor=await baseIdentity.verify(header);await accounts.verifyDevelopmentScope(actor);return actor;
+    }}:baseIdentity;
+    const accountAuth=new SessionCheckedAuthentication(new SupabaseAccountAuthentication(process.env.SUPABASE_URL!,process.env.SUPABASE_PUBLISHABLE_KEY!),pool,tenant,false);
+    const staffAuth=new SessionCheckedAuthentication(new SupabaseStaffAuthentication(process.env.SUPABASE_URL!,process.env.SUPABASE_PUBLISHABLE_KEY!,
+      {factor:'totp',maxAuthenticationAgeSeconds:3600}),pool,tenant,true);
     const evidence=configuredEvidence(process.env,new PostgresEvidenceStore(pool,tenant),allowDevelopmentEmail);
     const app = await createApp(identity, accounts, process.env.CORS_ORIGIN,
-      new PostgresVehicleStore(pool, tenant), { auth: new DevelopmentDraftVerifier(identity,allowDevelopmentEmail),
-        store: new PostgresEnrollmentStore(pool,tenant), seals:new PostgresSealStore(pool,tenant),
+      new PostgresVehicleStore(pool, tenant), { auth: allowDevelopmentEmail?new DevelopmentDraftVerifier(identity,true):staffAuth,
+        store: new PostgresEnrollmentStore(pool,tenant,!allowDevelopmentEmail), seals:new PostgresSealStore(pool,tenant,!allowDevelopmentEmail),
+        productionSeals:configuredProductionSeals(process.env,new PostgresProductionSealStore(pool,tenant),tenant),
         readiness: new PostgresReadinessStore(pool,tenant),
         submission: new PostgresSubmissionStore(pool,tenant),
         owner: configuredOwner(process.env,new PostgresOwnerStore(pool,tenant),allowDevelopmentEmail),
-        evidence, registrationReviews:new RegistrationReviewService(new PostgresRegistrationReviewStore(pool,tenant),evidence) });
+        evidence, registrationReviews:new RegistrationReviewService(new PostgresRegistrationReviewStore(pool,tenant),evidence) },
+      {accountAuth:allowDevelopmentEmail?identity:accountAuth,staffAuth:allowDevelopmentEmail?identity:staffAuth,
+        staffProofAuth:staffAuth,consentAuth:accountAuth,consents:new PostgresConsentStore(pool,tenant)});
     const shutdown = app.close.bind(app);
     app.close = async () => { await shutdown(); await pool.end(); };
     await app.listen(port, process.env.HOST ?? '127.0.0.1');

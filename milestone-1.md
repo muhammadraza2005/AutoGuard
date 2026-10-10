@@ -10,13 +10,24 @@ implementation guides. Recheck repository and hosted setup state before continui
 
 The previous 45–50% estimate is superseded by the concrete checklist below.
 Evidence handling, finalization and independent review components are implemented.
-Three production integrations remain: agent access/consent, seals and payments,
-followed by the deferred manual acceptance. This is not yet real registration.
+The access/consent component is now implemented with password/TOTP, live session
+checks and direct owner acceptance/withdrawal. Publishing real consent still
+requires organization/authority/contact/retention details and final wording approval.
+The seal backend component now implements signed batch issuance, independent
+inspection and trusted seal receipts using SRS rules and safe defaults. Migration
+019 is installed, with every verification result true as reported by the project
+owner. Production storage/wizard integration and administrator seal controls are
+now connected in source; apply 020 and follow
+[the exact setup guide](docs/PRODUCTION-REGISTRATION-SETUP.md).
+Local test keys and a synthetic upload pack are prepared. Real consent/domain
+configuration and deferred manual acceptance remain. All payments are Milestone 3;
+phone verification is Milestone 2. Their trusted activation prerequisites stay blocked
+until those later integrations exist.
 
-Milestone 1 is achieved when an authorized agent can register a real vehicle
-through all required checks, and its verified owner can see the active vehicle in
-their account. A saved draft, sample consent, staged file, sample review decision
-or complete development fitting does not satisfy this target.
+Milestone 1 covers registration preparation, consent, evidence, seals, independent
+review and the gated finalizer/owner connection. Code completion and manual acceptance
+are distinct from production activation, which also depends on Milestone 2 phone
+proof and Milestone 3 payments. Samples and placeholder configuration never activate.
 
 ## What is done
 
@@ -56,36 +67,42 @@ or complete development fitting does not satisfy this target.
 - [x] Independent TENANT_ADMIN review under the project owner's approved policy:
   separate reviewer access, audited image/PDF inspection, corrections, explicit
   replacement, append-only history, snapshot invalidation, agent feedback and
-  trusted review/evidence confirmations. Migration 017 awaits installation;
-  approval still requires the remaining production seal confirmation.
+  trusted review/evidence confirmations. Migration 019 installation confirms its
+  required 017/018 functions exist;
+  approval now consumes the implemented independent production seal confirmation.
   See [setup and acceptance](docs/REGISTRATION-REVIEWS.md).
 
-Latest checks passed: backend build and **38 tests**; mobile TypeScript, lint and
-**60 tests**; **123 isolated database foundation checks**; web and Android Hermes
+Latest integration checks passed: backend build and **58 tests**;
+mobile TypeScript, lint and **68 tests**, including the exact upload-pack PDFs.
+Web and Android bundles exported successfully. The previous full baseline also passed
+**123 isolated database foundation checks** and web and Android Hermes
 exports. Offline dependency compatibility passed with the tool's reliability
 warning. These checks do not establish signed-in browser or physical-device
 acceptance. The full enrollment HTTP test uses Auth/Storage provider doubles.
 
 ## What is left
 
-- [ ] Production authentication: real login and required stronger agent factors;
-  finish production permissions without allowing users to self-grant roles.
-- [ ] Authenticated owner consent. Existing consent is explicitly a development
-  sample. SMS/phone OTP integration is moved to Milestone 2 by the project owner;
-  it remains an activation dependency, not a sample-verification bypass.
+- [ ] Publish the real English/French consent after replacing placeholder values for
+  the organization, authority, privacy contact and approved retention policy.
+  Password/TOTP, current-session checks, production draft entrypoint, direct
+  owner consent/withdrawal and trusted access receipts are implemented in source.
+  See [exact instructions](docs/AGENT-ACCESS-CONSENT.md). SMS/phone OTP remains
+  Milestone 2 and still gates activation.
 - [ ] Final physical-device evidence/capture/PDF acceptance. Android handling,
   PDF viewing, encrypted recovery and automated checks are implemented;
   full offline operation belongs to Milestone 3.
-- [ ] Production seal issuance and authenticated identifiers; approved
-  category-specific placement rules and physical inspection.
-- [ ] Install review migration 017. The reviewer policy is approved and the
-  workflow is implemented; prepare a separate reviewer account at final acceptance.
-- [ ] Confirmed registration payment, including verified provider callbacks and
-  failure/retry handling. Coordinate this prerequisite with milestone 3 billing.
-- [ ] Connect the remaining trusted authentication,
-  consent, seal and payment producers to the implemented finalization
-  component. Production draft creation belongs to production authentication/
-  enrollment integration; samples remain blocked.
+- [x] Registration seal backend: signed batch issuance, authenticated identifiers,
+  assigned stock, actual location validation, independent MFA inspection, rejection/
+  revocation checks and atomic stock consumption. SRS OTHER is supported; provisional
+  category positions cannot be approved. [Setup and limits](docs/PRODUCTION-REGISTRATION-SEALS.md).
+- [x] Apply 019: project owner reports every hosted verification result true.
+- [ ] Replace the reserved test HTTPS seal origin before production. Local signing
+  and independent production encryption keys are securely generated; back them up.
+- [ ] Apply 020 and create the separate production evidence bucket using the exact
+  [setup instructions](docs/PRODUCTION-REGISTRATION-SETUP.md). Production wizard,
+  storage contracts, owner-account consent and administrator seal controls are connected.
+- [ ] Prepare separate authority-provisioned agent, owner and reviewer accounts
+  for final acceptance. The approved reviewer policy remains enforced.
 - [ ] Signed-in browser and Android acceptance, including failed uploads, expired
   sessions, revoked permissions, competing edits, retries and incomplete checks.
 - [ ] Verify French wrapping, narrow screens, keyboard, touch and accessibility.
@@ -102,14 +119,13 @@ registration milestone.
 
 Registration consent and verification hooks remain in Milestone 1; they must
 fail closed until Milestone 2 supplies trusted owner verification. Registration
-payment handling remains here because `whatsleft.md` explicitly requires payment
-integration early enough to support registration. It does not include the whole
-billing system. Workflow-specific permissions, audit records, bilingual copy and
+payment-provider integration is deferred entirely to Milestone 3 by the project
+owner. Its activation gate remains fail-closed. Workflow-specific permissions, audit records, bilingual copy and
 browser/Android acceptance remain part of each milestone's own implementation.
 
 ## Current setup and decisions
 
-- Seventeen migrations exist in source. Hosted development **011–016 are confirmed**
+- Eighteen migrations exist in source. Hosted development **011–016 are confirmed**
   by read-only inspection; do not replay them.
 - New [migration 014](supabase/migrations/202610100014_development_evidence_reviews.sql)
   is **installed**, confirmed by read-only inspection on 10 October 2026.
@@ -121,31 +137,46 @@ browser/Android acceptance remain part of each milestone's own implementation.
   checks pass, including restricted native upload bindings and function privileges.
   Do not replay it. Native uploads are ready for final manual acceptance.
 - Migration 016 is installed and passed read-only hosted verification after the
-  project owner ran it. Migration 017 is implemented and pending installation;
-  follow [the exact setup instructions](docs/REGISTRATION-REVIEWS.md).
+  project owner ran it. The verified 019 installation requires 017/018 functions;
+  do not reapply them because of older pending-installation notes.
+- Migration 019 for signed registration seals is installed. The project owner
+  ran the read-only verifier and reported every result true. Do not replay 019.
+  Follow [the seal guide](docs/PRODUCTION-REGISTRATION-SEALS.md) for signing setup.
+  Latest backend suite: **56 tests passed**, including signed issuance, inspection,
+  reviewer integration and atomic sealed registration. No manual device claim.
+- Integration follow-up: **58 backend tests and 68 mobile tests passed**; production
+  owner/upload contracts, private bucket setup, QR input and physical inspection
+  controls are connected. Migration 020 awaits your SQL Editor run. The exact
+  [upload files](Milestone-1-Test-Uploads/README.md) and
+  [setup steps](docs/PRODUCTION-REGISTRATION-SETUP.md) are ready. Local random test
+  keys were generated in ignored backend/.env; no hosted writes or deployment.
 - Backend and Metro were running at the last check: backend health on port 3000
   and agent route on port 8081 returned 200; unauthenticated review access returned
   401. Recheck on the next session; processes may have stopped.
 - SMS and phone OTP integration are assigned to Milestone 2 by the project owner.
-  Owner verification remains required before real activation. Stronger staff
-  factor choices still require the approved authentication policy.
+  Owner verification remains required before real activation. Staff now use
+  password plus authenticator TOTP under the owner's delegated security choice.
 - No payment provider has been selected, confirmed by the project owner in this
   session. Provider confirmation cannot be treated as implemented.
 - Manual browser and Android acceptance should be performed at the end, per the
   project owner's instruction. Continue independent implementation work first.
 - Android phone testing was deferred: the owner asked to finish the report and
   test the phone later. Do not report device acceptance as completed.
-- Provider choices/access and production seal/authentication/consent rules still
-  need project-owner input. The independent authority review policy is approved.
+- Payment provider access is Milestone 3. Actual seal host and approved consent facts
+  must replace the delegated placeholders before production. Staff authentication and the independent
+  authority review policy have been resolved.
   Samples cannot produce production approval or activation.
 
 ## Next achievable steps
 
-1. Continue production authentication/consent, seal issuance
-   and configured payment handling, connected to the implemented finalizer.
-   Approved authentication/consent/seal rules and payment provider access are still needed for
-   enabling production. Leave manual acceptance until the end.
-2. Apply migration 017 once using the review guide. Migrations 015–016 are complete.
+1. Apply 020 and the private production bucket setup using
+   [the exact instructions](docs/PRODUCTION-REGISTRATION-SETUP.md).
+   The integration and synthetic upload folder are prepared; use its README for
+   final manual tests. Real consent/domain values are production configuration,
+   while SMS/phone proof and payment providers remain Milestones 2 and 3.
+2. Migration 019 is installed and verified by the project owner; do not replay it.
+   Prior migration installation records may be stale; do not rerun 017/018 merely
+   because older notes describe them as pending. Migrations 015–016 are complete.
    To recheck setup from `backend/`:
 
    ```powershell
@@ -153,8 +184,8 @@ browser/Android acceptance remain part of each milestone's own implementation.
    ```
 
    This script is read-only and prints setup booleans without credentials. It
-   now expects eighteen functions and the restricted review tables. It exits nonzero
-   until 017 is installed; the existing 011–016 checks still pass.
+   checks the established functions and restricted review tables. Use the new
+   `verify-production-registration-integration.sql` to check 020 as well.
    Installation and metadata checks do not establish signed-in acceptance.
 3. At final manual acceptance, open an enrollment's Review step in the signed-in
    development browser. Use
